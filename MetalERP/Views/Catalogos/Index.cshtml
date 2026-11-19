@@ -1,0 +1,493 @@
+﻿@{
+    ViewData["Title"] = "Catálogos Generales";
+    string tab = ViewBag.TabActiva ?? "areas";
+    string tituloSingular = tab switch
+    {
+        "areas" => "Área",
+        "cargos" => "Cargo",
+        "paises" => "País",
+        "estados" => "Estado",
+        "municipios" => "Municipio",
+        _ => "Registro"
+    };
+}
+
+<style>
+    .cat-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 28px;
+        box-shadow: 0 8px 20px rgba(11,25,44,0.08);
+        border-top: 5px solid #C5A880;
+    }
+
+    .tabs-bar {
+        display: flex;
+        gap: 8px;
+        border-bottom: 2px solid #E5E9F0;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .tab-btn {
+        padding: 10px 18px;
+        background: #F5F7F8;
+        color: #0B192C;
+        border: none;
+        border-radius: 8px 8px 0 0;
+        font-weight: 600;
+        font-size: 13.5px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+        background: #E2E8F0;
+    }
+
+    .tab-btn.active {
+        background: #0B192C;
+        color: #C5A880;
+    }
+
+    /* Barra de búsqueda y botón Agregar */
+    .filter-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        background: #F8FAFC;
+        padding: 14px 16px;
+        border-radius: 8px;
+        border: 1px solid #E2E8F0;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .search-box-cat {
+        width: 280px;
+        max-width: 100%;
+        padding: 9px 13px;
+        border: 1px solid #D0D7DE;
+        border-radius: 6px;
+        font-size: 13.5px;
+        background: #fff;
+        outline: none;
+    }
+
+    .search-box-cat:focus {
+        border-color: #1E3E62;
+    }
+
+    .table-cat {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+    }
+
+    .table-cat th {
+        background: #0B192C;
+        color: #fff;
+        padding: 11px 14px;
+        text-align: left;
+    }
+
+    .table-cat td {
+        padding: 11px 14px;
+        border-bottom: 1px solid #E5E9F0;
+    }
+
+    .table-cat tr:hover {
+        background-color: #F8FAFC;
+    }
+
+    .btn-edit-sm {
+        background: #1E3E62;
+        color: #fff;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 5px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-right: 4px;
+    }
+
+    .btn-del-sm {
+        background: #9A3B3B;
+        color: #fff;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 5px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+</style>
+
+<div class="cat-card">
+    <div style="margin-bottom: 18px;">
+        <h2 style="color:#0B192C; font-size:21px; margin-bottom:4px;">Catálogos Generales del Sistema</h2>
+        <p style="color:#9BA4B5; font-size:13px;">Administra áreas, puestos y ubicaciones geográficas de MetalERP</p>
+    </div>
+
+    @if (TempData["Exito"] != null)
+    {
+        <div class="alert-success-erp">@TempData["Exito"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div style="background:#FEE2E2; color:#991B1B; padding:12px; border-radius:6px; margin-bottom:15px; font-size:13px; font-weight:600;">@TempData["Error"]</div>
+    }
+
+    <!-- PESTAÑAS -->
+    <div class="tabs-bar">
+        <a asp-action="Index" asp-route-tab="areas" class="tab-btn @(tab == "areas" ? "active" : "")">Áreas</a>
+        <a asp-action="Index" asp-route-tab="cargos" class="tab-btn @(tab == "cargos" ? "active" : "")">Cargos</a>
+        <a asp-action="Index" asp-route-tab="paises" class="tab-btn @(tab == "paises" ? "active" : "")">Países</a>
+        <a asp-action="Index" asp-route-tab="estados" class="tab-btn @(tab == "estados" ? "active" : "")">Estados</a>
+        <a asp-action="Index" asp-route-tab="municipios" class="tab-btn @(tab == "municipios" ? "active" : "")">Municipios</a>
+    </div>
+
+    <!-- BARRA DE FILTRO / BÚSQUEDA + BOTÓN AGREGAR -->
+    <div class="filter-toolbar">
+        <input type="text" id="txtBuscarCat" class="search-box-cat" onkeyup="filtrarCatalogo()" placeholder="Buscar o filtrar en @tab..." />
+        <button type="button" class="btn-primary-erp" style="padding: 10px 20px;" onclick="abrirModalNuevo()">
+            + Agregar @tituloSingular
+        </button>
+    </div>
+
+    <!-- TABLA SEGÚN PESTAÑA ACTIVA -->
+    <table class="table-cat" id="tablaCatalogo">
+        <thead>
+            <tr>
+                <th style="width:70px;">ID</th>
+                @if (tab == "cargos")
+                {
+                    <th>Área Perteneciente</th>
+                }
+                @if (tab == "estados")
+                {
+                    <th>País</th>
+                }
+                @if (tab == "municipios")
+                {
+                    <th>País / Estado</th>
+                }
+                <th>Nombre del Registro</th>
+                <th style="text-align:right; width:170px;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (tab == "areas")
+            {
+                foreach (var x in ViewBag.Areas)
+                {
+                    <tr>
+                        <td>#@x.AreaID</td>
+                        <td style="font-weight:600;">@x.NombreArea</td>
+                        <td style="text-align:right;">
+                            <button type="button" class="btn-edit-sm" onclick="abrirEditar(@x.AreaID, '@x.NombreArea', null)">Editar</button>
+                            <button type="button" class="btn-del-sm" onclick="abrirModalBajaCat('areas', @x.AreaID, '@x.NombreArea')">Baja</button>
+                        </td>
+                    </tr>
+                }
+            }
+            else if (tab == "cargos")
+            {
+                foreach (var x in ViewBag.Cargos)
+                {
+                    <tr>
+                        <td>#@x.CargoID</td>
+                        <td>@x.AreaNombre</td>
+                        <td style="font-weight:600;">@x.NombreCargo</td>
+                        <td style="text-align:right;">
+                            <button type="button" class="btn-edit-sm" onclick="abrirEditar(@x.CargoID, '@x.NombreCargo', @x.AreaID)">Editar</button>
+                            <button type="button" class="btn-del-sm" onclick="abrirModalBajaCat('cargos', @x.CargoID, '@x.NombreCargo')">Baja</button>
+                        </td>
+                    </tr>
+                }
+            }
+            else if (tab == "paises")
+            {
+                foreach (var x in ViewBag.Paises)
+                {
+                    <tr>
+                        <td>#@x.PaisID</td>
+                        <td style="font-weight:600;">@x.Nombre</td>
+                        <td style="text-align:right;">
+                            <button type="button" class="btn-edit-sm" onclick="abrirEditar(@x.PaisID, '@x.Nombre', null)">Editar</button>
+                            <button type="button" class="btn-del-sm" onclick="abrirModalBajaCat('paises', @x.PaisID, '@x.Nombre')">Baja</button>
+                        </td>
+                    </tr>
+                }
+            }
+            else if (tab == "estados")
+            {
+                foreach (var x in ViewBag.Estados)
+                {
+                    <tr>
+                        <td>#@x.EstadoID</td>
+                        <td>@x.PaisNombre</td>
+                        <td style="font-weight:600;">@x.Nombre</td>
+                        <td style="text-align:right;">
+                            <button type="button" class="btn-edit-sm" onclick="abrirEditar(@x.EstadoID, '@x.Nombre', @x.PaisID)">Editar</button>
+                            <button type="button" class="btn-del-sm" onclick="abrirModalBajaCat('estados', @x.EstadoID, '@x.Nombre')">Baja</button>
+                        </td>
+                    </tr>
+                }
+            }
+            else if (tab == "municipios")
+            {
+                foreach (var x in ViewBag.Municipios)
+                {
+                    <tr>
+                        <td>#@x.MunicipioID</td>
+                        <td>@x.PaisNombre — @x.EstadoNombre</td>
+                        <td style="font-weight:600;">@x.Nombre</td>
+                        <td style="text-align:right;">
+                            <button type="button" class="btn-edit-sm" onclick="abrirEditar(@x.MunicipioID, '@x.Nombre', @x.EstadoID, @x.PaisID)">Editar</button>
+                            <button type="button" class="btn-del-sm" onclick="abrirModalBajaCat('municipios', @x.MunicipioID, '@x.Nombre')">Baja</button>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- MODAL 1: AGREGAR NUEVO REGISTRO -->
+<div id="modalNuevoCat" style="display:none; position:fixed; inset:0; background:rgba(11,25,44,0.65); z-index:1000; align-items:center; justify-content:center; backdrop-filter:blur(2px);">
+    <div style="background:#fff; width:100%; max-width:430px; border-radius:12px; padding:26px; box-shadow:0 20px 40px rgba(0,0,0,0.25); border-top:5px solid #C5A880;">
+        <h3 style="color:#0B192C; margin-bottom:6px;">Nuevo @tituloSingular</h3>
+        <p style="color:#64748B; font-size:13px; margin-bottom:16px;">Completa los datos para dar de alta en el catálogo.</p>
+
+        <form asp-action="GuardarNuevo" method="post">
+            <input type="hidden" name="tipo" value="@tab" />
+
+            @if (tab == "cargos")
+            {
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label>Área Perteneciente *</label>
+                    <select name="padreId" asp-items="ViewBag.SelectAreas" required>
+                        <option value="">-- Selecciona un Área --</option>
+                    </select>
+                </div>
+            }
+            else if (tab == "estados")
+            {
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label>País *</label>
+                    <select name="padreId" asp-items="ViewBag.SelectPaises" required>
+                        <option value="">-- Selecciona un País --</option>
+                    </select>
+                </div>
+            }
+            else if (tab == "municipios")
+            {
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label>País *</label>
+                    <select id="nuevoPaisId" asp-items="ViewBag.SelectPaises"
+                            onchange="cargarEstadosCat(this.value, 'nuevoEstadoId')"
+                            oninvalid="this.setCustomValidity('Por favor, selecciona un país de la lista.')"
+                            oninput="this.setCustomValidity('')"
+                            required>
+                        <option value="">-- Selecciona un País --</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label>Estado *</label>
+                    <select name="padreId" id="nuevoEstadoId"
+                            oninvalid="this.setCustomValidity('Por favor, selecciona un estado de la lista.')"
+                            oninput="this.setCustomValidity('')"
+                            disabled required>
+                        <option value="">-- Primero selecciona un País --</option>
+                    </select>
+                </div>
+            }
+
+            <div class="form-group" style="margin-bottom:20px;">
+                <label>Nombre de @tituloSingular *</label>
+                <input type="text" name="nombre" id="txtNuevoNombreCat" placeholder="Escribe el nombre..." required />
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" onclick="cerrarModal('modalNuevoCat')" class="btn-secondary-erp" style="margin:0;">Cancelar</button>
+                <button type="submit" class="btn-primary-erp">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL 2: EDITAR REGISTRO -->
+<div id="modalEditarCat" style="display:none; position:fixed; inset:0; background:rgba(11,25,44,0.65); z-index:1000; align-items:center; justify-content:center; backdrop-filter:blur(2px);">
+    <div style="background:#fff; width:100%; max-width:430px; border-radius:12px; padding:26px; box-shadow:0 20px 40px rgba(0,0,0,0.25); border-top:5px solid #C5A880;">
+        <h3 style="color:#0B192C; margin-bottom:15px;">Editar @tituloSingular</h3>
+        <form asp-action="EditarCatalogo" method="post">
+            <input type="hidden" name="tipo" value="@tab" />
+            <input type="hidden" name="id" id="editCatId" />
+
+            @if (tab == "cargos")
+            {
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label>Área Perteneciente *</label>
+                    <select name="padreId" id="editPadreId" asp-items="ViewBag.SelectAreas" required></select>
+                </div>
+            }
+            else if (tab == "estados")
+            {
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label>País *</label>
+                    <select name="padreId" id="editPadreId" asp-items="ViewBag.SelectPaises" required></select>
+                </div>
+            }
+            else if (tab == "municipios")
+            {
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label>País *</label>
+                    <select id="editPaisId" asp-items="ViewBag.SelectPaises"
+                            onchange="cargarEstadosCat(this.value, 'editPadreId')"
+                            oninvalid="this.setCustomValidity('Por favor, selecciona un país de la lista.')"
+                            oninput="this.setCustomValidity('')"
+                            required>
+                        <option value="">-- Selecciona un País --</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label>Estado *</label>
+                    <select name="padreId" id="editPadreId"
+                            oninvalid="this.setCustomValidity('Por favor, selecciona un estado de la lista.')"
+                            oninput="this.setCustomValidity('')"
+                            disabled required>
+                        <option value="">-- Primero selecciona un País --</option>
+                    </select>
+                </div>
+            }
+
+            <div class="form-group" style="margin-bottom:20px;">
+                <label>Nombre *</label>
+                <input type="text" name="nombre" id="editCatNombre" required />
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" onclick="cerrarModal('modalEditarCat')" class="btn-secondary-erp" style="margin:0;">Cancelar</button>
+                <button type="submit" class="btn-primary-erp">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL 3: CONFIRMAR BAJA LÓGICA DE CATÁLOGO -->
+<div id="modalBajaCat" style="display:none; position:fixed; inset:0; background:rgba(11,25,44,0.65); z-index:1000; align-items:center; justify-content:center; backdrop-filter:blur(2px);">
+    <div style="background:#fff; width:100%; max-width:420px; border-radius:12px; padding:28px; box-shadow:0 20px 40px rgba(0,0,0,0.25); border-top:5px solid #9A3B3B; text-align:center;">
+        <div style="width:52px; height:52px; background:#FEE2E2; color:#9A3B3B; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px auto;">
+            <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+        </div>
+
+        <h3 style="color:#0B192C; font-size:19px; margin-bottom:8px;">¿Confirmar baja de @tituloSingular?</h3>
+        <p style="color:#64748B; font-size:13.5px; line-height:1.5; margin-bottom:22px;">
+            Estás a punto de dar de baja el registro <strong id="bajaCatNombre" style="color:#0B192C; background:#F5F7F8; padding:2px 8px; border-radius:4px; border:1px solid #E2E8F0;"></strong>.<br><br>
+            El sistema verificará que no esté asignado a ningún empleado, cliente o proveedor activo.
+        </p>
+
+        <form asp-action="BajaCatalogo" method="post">
+            <input type="hidden" name="tipo" id="bajaCatTipo" />
+            <input type="hidden" name="id" id="bajaCatId" />
+
+            <div style="display:flex; justify-content:center; gap:12px;">
+                <button type="button" onclick="cerrarModal('modalBajaCat')" class="btn-secondary-erp" style="margin:0;">Cancelar</button>
+                <button type="submit" style="background:#9A3B3B; color:#fff; border:none; padding:11px 22px; border-radius:6px; font-weight:600; font-size:14px; cursor:pointer;">Sí, dar de baja</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    async function cargarEstadosCat(paisId, selectEstadoId, estadoSeleccionadoId = null) {
+        const ddlEstado = document.getElementById(selectEstadoId);
+        if (!ddlEstado) return;
+
+        if (!paisId) {
+            ddlEstado.innerHTML = '<option value="">-- Primero selecciona un País --</option>';
+            ddlEstado.disabled = true;
+            return;
+        }
+
+        ddlEstado.innerHTML = '<option value="">Cargando estados...</option>';
+        ddlEstado.disabled = true;
+
+        try {
+            const res = await fetch(`/Empleados/ObtenerEstadosPorPais?paisId=${paisId}`);
+            const estados = await res.json();
+
+            ddlEstado.innerHTML = '<option value="">-- Selecciona un Estado --</option>';
+            estados.forEach(est => {
+                const opt = document.createElement('option');
+                opt.value = est.id;
+                opt.textContent = est.nombre;
+                ddlEstado.appendChild(opt);
+            });
+
+            ddlEstado.disabled = false;
+            if (estadoSeleccionadoId) {
+                ddlEstado.value = estadoSeleccionadoId;
+            }
+        } catch (error) {
+            ddlEstado.innerHTML = '<option value="">Error al cargar estados</option>';
+        }
+    }
+
+    function abrirModalNuevo() {
+        document.getElementById('txtNuevoNombreCat').value = '';
+        const nuevoPais = document.getElementById('nuevoPaisId');
+        const nuevoEstado = document.getElementById('nuevoEstadoId');
+        if (nuevoPais && nuevoEstado) {
+            nuevoPais.value = '';
+            nuevoEstado.innerHTML = '<option value="">-- Primero selecciona un País --</option>';
+            nuevoEstado.disabled = true;
+        }
+        document.getElementById('modalNuevoCat').style.display = 'flex';
+        setTimeout(() => document.getElementById('txtNuevoNombreCat').focus(), 100);
+    }
+
+    async function abrirEditar(id, nombre, padreId, paisId = null) {
+        document.getElementById('editCatId').value = id;
+        document.getElementById('editCatNombre').value = nombre;
+
+        const editPais = document.getElementById('editPaisId');
+        if (editPais && paisId) {
+            editPais.value = paisId;
+            await cargarEstadosCat(paisId, 'editPadreId', padreId);
+        } else {
+            const selectPadre = document.getElementById('editPadreId');
+            if (selectPadre && padreId) selectPadre.value = padreId;
+        }
+
+        document.getElementById('modalEditarCat').style.display = 'flex';
+    }
+
+    function cerrarModal(idModal) {
+        document.getElementById(idModal).style.display = 'none';
+    }
+
+    function quitarAcentos(texto) {
+        return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    }
+
+    function filtrarCatalogo() {
+        const val = quitarAcentos(document.getElementById('txtBuscarCat').value);
+        document.querySelectorAll('#tablaCatalogo tbody tr').forEach(tr => {
+            tr.style.display = quitarAcentos(tr.textContent).includes(val) ? '' : 'none';
+        });
+    }
+
+    function abrirModalBajaCat(tipo, id, nombre) {
+        document.getElementById('bajaCatTipo').value = tipo;
+        document.getElementById('bajaCatId').value = id;
+        document.getElementById('bajaCatNombre').textContent = nombre;
+        document.getElementById('modalBajaCat').style.display = 'flex';
+    }
+</script>

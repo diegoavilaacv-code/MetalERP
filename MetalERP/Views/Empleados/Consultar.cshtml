@@ -1,0 +1,485 @@
+﻿@model IEnumerable<MetalERP.Models.ViewModels.ConsultaEmpleadoViewModel>
+@{
+    ViewData["Title"] = "Consultar Empleados";
+}
+
+<style>
+    .consulta-card {
+        background: #ffffff;
+        padding: 28px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(11, 25, 44, 0.08);
+        border-top: 5px solid #C5A880;
+    }
+
+    .toolbar-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #E5E9F0;
+    }
+
+    .toolbar-title h2 {
+        color: #0B192C;
+        font-size: 21px;
+        margin-bottom: 4px;
+    }
+
+    .toolbar-title p {
+        color: #9BA4B5;
+        font-size: 13px;
+    }
+
+    .toolbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .search-global {
+        padding: 9px 14px;
+        border: 1px solid #D0D7DE;
+        border-radius: 6px;
+        font-size: 13.5px;
+        width: 250px;
+        outline: none;
+    }
+
+        .search-global:focus {
+            border-color: #1E3E62;
+        }
+
+    .btn-export-excel {
+        background-color: #166534;
+        color: #fff;
+        border: none;
+        padding: 9px 15px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .btn-export-excel:hover {
+            background-color: #14532D;
+        }
+
+    .btn-export-pdf {
+        background-color: #9A3B3B;
+        color: #fff;
+        border: none;
+        padding: 9px 15px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .btn-export-pdf:hover {
+            background-color: #7F1D1D;
+        }
+
+    .table-main {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+        .table-main thead tr.header-row th {
+            background-color: #0B192C;
+            color: #ffffff;
+            padding: 11px 12px;
+            text-align: left;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .table-main thead tr.filter-row th {
+            background-color: #1E3E62;
+            padding: 6px 8px;
+        }
+
+    .col-filter {
+        width: 100%;
+        padding: 5px 8px;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        background-color: #F5F7F8;
+        color: #0B192C;
+        outline: none;
+    }
+
+    .table-main tbody tr.fila-empleado td {
+        padding: 11px 12px;
+        border-bottom: 1px solid #E5E9F0;
+        color: #0B192C;
+        vertical-align: middle;
+    }
+
+    .table-main tbody tr.fila-empleado:hover {
+        background-color: #F8FAFC;
+    }
+
+    .btn-icon-sub {
+        background-color: #F5F7F8;
+        border: 1px solid #CBD5E1;
+        color: #1E3E62;
+        width: 34px;
+        height: 34px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+        .btn-icon-sub:hover, .btn-icon-sub.active {
+            background-color: #1E3E62;
+            color: #C5A880;
+            border-color: #1E3E62;
+        }
+
+    /* Subtablas desplegables compactas */
+    .subrow {
+        display: none;
+        background-color: #F8FAFC;
+    }
+
+        .subrow.open {
+            display: table-row;
+        }
+
+    .subtable-wrapper {
+        padding: 8px 14px;
+        border-left: 3px solid #C5A880;
+        margin: 3px 16px;
+        background: #ffffff;
+        border-radius: 5px;
+        box-shadow: 0 1px 4px rgba(11, 25, 44, 0.06);
+    }
+
+    .subtable-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #1E3E62;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-bottom: 5px;
+    }
+
+    .subtable {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11.5px;
+    }
+
+        .subtable th {
+            background-color: #E2E8F0;
+            color: #0B192C;
+            padding: 4px 8px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .subtable td {
+            padding: 4px 8px;
+            border-bottom: 1px solid #F1F5F9;
+            color: #334155;
+        }
+
+        .subtable tbody tr:last-child td {
+            border-bottom: none;
+        }
+</style>
+
+<div class="consulta-card">
+    <div class="toolbar-top">
+        <div class="toolbar-title">
+            <h2>Directorio y Consulta de Empleados</h2>
+            <p>Filtra por columna, despliega domicilios o contactos y exporta reportes</p>
+        </div>
+
+        <div class="toolbar-actions">
+            <input type="text" id="txtBusquedaGlobal" class="search-global" onkeyup="aplicarFiltros()" placeholder="Buscar en toda la tabla..." />
+            <button type="button" class="btn-export-excel" onclick="exportarExcel()">📊 Excel</button>
+            <button type="button" class="btn-export-pdf" onclick="exportarPDF()">📄 PDF</button>
+        </div>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table class="table-main" id="tablaEmpleadosConsulta">
+            <thead>
+                <tr class="header-row">
+                    <th>ID</th>
+                    <th>Nombre Completo</th>
+                    <th>Correo</th>
+                    <th>Teléfonos</th>
+                    <th>Área</th>
+                    <th>Cargo</th>
+                    <th>Ingreso</th>
+                    <th style="text-align:center;">Domicilio</th>
+                    <th style="text-align:center;">Contactos</th>
+                    <th style="text-align:center;">Expediente</th>
+                </tr>
+                <tr class="filter-row">
+                    <th><input type="text" class="col-filter" data-col="0" onkeyup="aplicarFiltros()" placeholder="ID..." /></th>
+                    <th><input type="text" class="col-filter" data-col="1" onkeyup="aplicarFiltros()" placeholder="Nombre..." /></th>
+                    <th><input type="text" class="col-filter" data-col="2" onkeyup="aplicarFiltros()" placeholder="Correo..." /></th>
+                    <th><input type="text" class="col-filter" data-col="3" onkeyup="aplicarFiltros()" placeholder="Teléfono..." /></th>
+                    <th><input type="text" class="col-filter" data-col="4" onkeyup="aplicarFiltros()" placeholder="Área..." /></th>
+                    <th><input type="text" class="col-filter" data-col="5" onkeyup="aplicarFiltros()" placeholder="Cargo..." /></th>
+                    <th><input type="text" class="col-filter" data-col="6" onkeyup="aplicarFiltros()" placeholder="Fecha..." /></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var emp in Model)
+                {
+                    <tr class="fila-empleado" data-empid="@emp.EmpleadoID">
+                        <td><strong>#@emp.EmpleadoID</strong></td>
+                        <td>@emp.NombreCompleto</td>
+                        <td>@emp.Correo</td>
+                        <td>@emp.TelefonosConcatenados</td>
+                        <td>@emp.Area</td>
+                        <td>@emp.Cargo</td>
+                        <td>@emp.FechaContratacion</td>
+                        <td style="text-align:center;">
+                            <button type="button" class="btn-icon-sub"
+                                    title="Ver domicilio particular de @emp.NombreCompleto"
+                                    onclick="toggleSubtabla(@emp.EmpleadoID, 'dom', this)">
+                                📍
+                            </button>
+                        </td>
+                        <td style="text-align:center;">
+                            <button type="button" class="btn-icon-sub"
+                                    title="Ver contactos de emergencia de @emp.NombreCompleto (@emp.Contactos.Count)"
+                                    onclick="toggleSubtabla(@emp.EmpleadoID, 'cont', this)">
+                                ☎️
+                            </button>
+                        </td>
+                        <td style="text-align:center;">
+                            <button type="button" class="btn-icon-sub"
+                                    title="Ver expediente electrónico de @emp.NombreCompleto (@emp.Documentos.Count documentos)"
+                                    onclick="toggleSubtabla(@emp.EmpleadoID, 'exp', this)">
+                                📁
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- SUBTABLA 1: DOMICILIO DEL EMPLEADO -->
+                    <tr class="subrow" id="sub-dom-@emp.EmpleadoID">
+                        <td colspan="9">
+                            <div class="subtable-wrapper">
+                                <div class="subtable-title">Domicilio Particular — @emp.NombreCompleto</div>
+                                <table class="subtable">
+                                    <thead>
+                                        <tr>
+                                            <th>País</th>
+                                            <th>Estado</th>
+                                            <th>Municipio</th>
+                                            <th>Colonia / Localidad</th>
+                                            <th>Calle y Números</th>
+                                            <th>C.P.</th>
+                                            <th>Referencia</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>@emp.Pais</td>
+                                            <td>@emp.Estado</td>
+                                            <td>@emp.Municipio</td>
+                                            <td>@emp.Colonia</td>
+                                            <td>@emp.CalleYNumeros</td>
+                                            <td>@emp.CodigoPostal</td>
+                                            <td>@emp.Referencia</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- SUBTABLA 2: CONTACTOS DE EMERGENCIA DEL EMPLEADO -->
+                    <tr class="subrow" id="sub-cont-@emp.EmpleadoID">
+                        <td colspan="9">
+                            <div class="subtable-wrapper">
+                                <div class="subtable-title">Contactos de Emergencia — @emp.NombreCompleto</div>
+                                @if (!emp.Contactos.Any())
+                                {
+                                    <p style="font-size:12.5px; color:#64748B; font-style:italic;">Este empleado no tiene contactos de emergencia registrados.</p>
+                                }
+                                else
+                                {
+                                    <table class="subtable">
+                                        <thead>
+                                            <tr>
+                                                <th>Nombre del Contacto</th>
+                                                <th>Parentesco</th>
+                                                <th>Teléfono</th>
+                                                <th>Correo</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var c in emp.Contactos)
+                                            {
+                                                <tr>
+                                                    <td><strong>@c.Nombre</strong></td>
+                                                    <td>@c.Parentesco</td>
+                                                    <td>@c.Telefono</td>
+                                                    <td>@c.Correo</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- SUBTABLA 3: EXPEDIENTE DEL EMPLEADO -->
+                    <tr class="subrow" id="sub-exp-@emp.EmpleadoID">
+                        <td colspan="10">
+                            <div class="subtable-wrapper">
+                                <div class="subtable-title">Expediente Electrónico — @emp.NombreCompleto</div>
+                                @if (!emp.Documentos.Any())
+                                {
+                                    <p style="font-size:12px; color:#64748B; font-style:italic;">No hay documentos digitales cargados para este empleado.</p>
+                                }
+                                else
+                                {
+                                    <table class="subtable">
+                                        <thead>
+                                            <tr>
+                                                <th>Documento</th>
+                                                <th>Archivo Original</th>
+                                                <th>Fecha de Carga</th>
+                                                <th style="text-align:right;">Visualizar</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var doc in emp.Documentos)
+                                            {
+                                                <tr>
+                                                    <td><strong>@doc.TipoDocumento</strong></td>
+                                                    <td>@doc.NombreArchivoOriginal</td>
+                                                    <td>@doc.FechaSubida.ToString("dd/MM/yyyy HH:mm")</td>
+                                                    <td style="text-align:right;">
+                                                        <a href="@doc.RutaArchivo" target="_blank" style="background:#1E3E62; color:#fff; text-decoration:none; padding:4px 10px; border-radius:4px; font-size:11.5px; font-weight:600;">
+                                                            Abrir Archivo
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function toggleSubtabla(empId, tipo, btn) {
+        const filaObjetivo = document.getElementById(`sub-${tipo}-${empId}`);
+        filaObjetivo.classList.toggle('open');
+        btn.classList.toggle('active');
+    }
+
+    function quitarAcentos(texto) {
+        return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    }
+
+    function aplicarFiltros() {
+        const globalVal = quitarAcentos(document.getElementById('txtBusquedaGlobal').value);
+        const colInputs = document.querySelectorAll('.col-filter');
+        const filas = document.querySelectorAll('#tablaEmpleadosConsulta tbody tr.fila-empleado');
+
+        filas.forEach(fila => {
+            const celdas = fila.querySelectorAll('td');
+            const textoFila = quitarAcentos(fila.textContent);
+            let coincideGlobal = textoFila.includes(globalVal);
+            let coincideColumnas = true;
+
+            colInputs.forEach(input => {
+                const colIdx = parseInt(input.getAttribute('data-col'));
+                const filtroVal = quitarAcentos(input.value.trim());
+                if (filtroVal && !quitarAcentos(celdas[colIdx].textContent).includes(filtroVal)) {
+                    coincideColumnas = false;
+                }
+            });
+
+            const visible = coincideGlobal && coincideColumnas;
+            fila.style.display = visible ? '' : 'none';
+
+            if (!visible) {
+                const id = fila.getAttribute('data-empid');
+                document.getElementById(`sub-dom-${id}`).classList.remove('open');
+                document.getElementById(`sub-cont-${id}`).classList.remove('open');
+            }
+        });
+    }
+
+    function obtenerDatosVisibles() {
+        const encabezados = ["ID", "Nombre Completo", "Correo", "Teléfonos", "Área", "Cargo", "Fecha Ingreso"];
+        const datos = [];
+        document.querySelectorAll('#tablaEmpleadosConsulta tbody tr.fila-empleado').forEach(fila => {
+            if (fila.style.display !== 'none') {
+                const tds = fila.querySelectorAll('td');
+                datos.push([
+                    tds[0].textContent.trim(),
+                    tds[1].textContent.trim(),
+                    tds[2].textContent.trim(),
+                    tds[3].textContent.trim(),
+                    tds[4].textContent.trim(),
+                    tds[5].textContent.trim(),
+                    tds[6].textContent.trim()
+                ]);
+            }
+        });
+        return { encabezados, datos };
+    }
+
+    function construirParametrosFiltro() {
+        const params = new URLSearchParams();
+        const globalVal = document.getElementById('txtBusquedaGlobal').value.trim();
+        if (globalVal) params.append('busqueda', globalVal);
+
+        const nombresParam = ['id', 'nombre', 'correo', 'telefono', 'area', 'cargo', 'fecha'];
+        document.querySelectorAll('.col-filter').forEach(input => {
+            const idx = parseInt(input.getAttribute('data-col'));
+            const val = input.value.trim();
+            if (val && nombresParam[idx]) {
+                params.append(nombresParam[idx], val);
+            }
+        });
+        return params.toString();
+    }
+
+    function exportarExcel() {
+        const query = construirParametrosFiltro();
+        window.location.href = `/Empleados/ExportarExcel?${query}`;
+    }
+
+    function exportarPDF() {
+        const query = construirParametrosFiltro();
+        window.location.href = `/Empleados/ExportarPDF?${query}`;
+    }
+</script>

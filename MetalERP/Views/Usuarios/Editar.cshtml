@@ -1,0 +1,87 @@
+﻿@model MetalERP.Models.ViewModels.EditarUsuarioViewModel
+@{
+    ViewData["Title"] = "Editar Usuario";
+}
+
+<div class="erp-container" style="max-width: 600px;">
+    <div class="form-card">
+        <div class="form-header">
+            <h2>Editar Usuario</h2>
+            <p>Selecciona una cuenta para modificar su nombre de usuario o restablecer su contraseña</p>
+        </div>
+
+        @if (TempData["MensajeExito"] != null)
+        {
+            <div class="alert-success-erp">@TempData["MensajeExito"]</div>
+        }
+
+        <!-- Selector rápido de usuario -->
+        <div class="form-group" style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #E5E9F0;">
+            <label for="ddlSeleccionarUsuario">Seleccionar Cuenta a Editar</label>
+            <select id="ddlSeleccionarUsuario" asp-for="UsuarioID" asp-items="@(ViewBag.Usuarios as SelectList)" onchange="cargarUsuario(this.value)">
+                <option value="0">-- Elige un usuario de la lista --</option>
+            </select>
+        </div>
+
+        @if (Model.UsuarioID > 0)
+        {
+            <form asp-controller="Usuarios" asp-action="Editar" method="post">
+                <input type="hidden" asp-for="UsuarioID" />
+                <input type="hidden" asp-for="NombreEmpleado" />
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label>Colaborador Vinculado</label>
+                    <input value="@Model.NombreEmpleado" disabled style="background-color: #EEF1F5; color: #475569; font-weight: 600;" />
+                </div>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label asp-for="Username">Nombre de Usuario (Username) *</label>
+                    <input asp-for="Username" autocomplete="off" />
+                    <span asp-validation-for="Username" class="text-danger"></span>
+                </div>
+
+                <div class="section-title" style="margin: 22px 0 12px 0;">Cambio de Contraseña (Opcional)</div>
+                <p style="font-size: 12px; color: #64748B; margin-bottom: 14px;">
+                    Deja estos campos en blanco si deseas conservar la contraseña actual del usuario.
+                </p>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label asp-for="NuevaPassword">Nueva Contraseña</label>
+                    <div style="position:relative; display:flex; align-items:center;">
+                        <input asp-for="NuevaPassword" type="password" id="editPass1" placeholder="Mínimo 6 caracteres" style="padding-right: 40px;" />
+                        <button type="button" onclick="verPass('editPass1')" style="position:absolute; right:10px; background:none; border:none; cursor:pointer; color:#9BA4B5;">👁️</button>
+                    </div>
+                    <span asp-validation-for="NuevaPassword" class="text-danger"></span>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label asp-for="ConfirmarPassword">Confirmar Nueva Contraseña</label>
+                    <div style="position:relative; display:flex; align-items:center;">
+                        <input asp-for="ConfirmarPassword" type="password" id="editPass2" placeholder="Repite la nueva contraseña" style="padding-right: 40px;" />
+                        <button type="button" onclick="verPass('editPass2')" style="position:absolute; right:10px; background:none; border:none; cursor:pointer; color:#9BA4B5;">👁️</button>
+                    </div>
+                    <span asp-validation-for="ConfirmarPassword" class="text-danger"></span>
+                </div>
+
+                <div>
+                    <button type="submit" class="btn-primary-erp">Guardar Cambios</button>
+                    <a asp-controller="Home" asp-action="Index" class="btn-secondary-erp">Cancelar</a>
+                </div>
+            </form>
+        }
+    </div>
+</div>
+
+<script>
+    function cargarUsuario(usuarioId) {
+        if (usuarioId && usuarioId > 0) {
+            window.location.href = `/Usuarios/Editar?id=${usuarioId}`;
+        } else {
+            window.location.href = `/Usuarios/Editar`;
+        }
+    }
+    function verPass(id) {
+        const inp = document.getElementById(id);
+        inp.type = inp.type === 'password' ? 'text' : 'password';
+    }
+</script>

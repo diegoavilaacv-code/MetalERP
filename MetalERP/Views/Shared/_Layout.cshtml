@@ -1,0 +1,200 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MetalERP</title>
+    <link rel="stylesheet" href="~/css/metalerp.css" asp-append-version="true" />
+</head>
+<body>
+    @{
+        string currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+        string currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+        bool esPanelPrincipal = currentController.Equals("Home", StringComparison.OrdinalIgnoreCase)
+                             && currentAction.Equals("Index", StringComparison.OrdinalIgnoreCase);
+
+        bool esModuloUsuarios = currentController.Equals("Usuarios", StringComparison.OrdinalIgnoreCase);
+        bool esModuloCatalogos = currentController.Equals("Catalogos", StringComparison.OrdinalIgnoreCase);
+        bool esModuloEmpleados = currentController.Equals("Empleados", StringComparison.OrdinalIgnoreCase);
+        bool esModuloClientes = currentController.Equals("Clientes", StringComparison.OrdinalIgnoreCase);
+    }
+
+    <aside class="sidebar @(esPanelPrincipal ? "collapsed" : "")" id="sidebar">
+        <div class="sidebar-brand">
+            <a asp-controller="Home" asp-action="Index" class="brand-logo">
+                <div class="brand-icon">M</div>
+                <span class="brand-text">MetalERP</span>
+            </a>
+        </div>
+
+        <nav class="menu-container">
+            <!-- Panel Principal -->
+            <a asp-controller="Home" asp-action="Index" class="menu-item @(esPanelPrincipal ? "active" : "")" title="Panel Principal">
+                <div class="menu-item-left">
+                    <svg class="menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span class="menu-label">Panel Principal</span>
+                </div>
+            </a>
+
+            <!-- SECCIÓN 1: ADMINISTRACIÓN -->
+            <div class="menu-category">Administración</div>
+
+            <button type="button" class="menu-item @(esModuloUsuarios ? "active open" : "")" onclick="toggleSubmenu('submenu-usuarios', this)" title="Usuarios">
+                <div class="menu-item-left">
+                    <svg class="menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <span class="menu-label">Usuarios</span>
+                </div>
+                <svg class="chevron-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+
+            <div class="submenu @(esModuloUsuarios ? "open" : "")" id="submenu-usuarios">
+                <a asp-controller="Usuarios" asp-action="Crear" class="submenu-item @(esModuloUsuarios && currentAction == "Crear" ? "active" : "")">
+                    <span class="submenu-dot"></span><span>Crear usuario</span>
+                </a>
+                <a asp-controller="Usuarios" asp-action="Editar" class="submenu-item @(esModuloUsuarios && currentAction == "Editar" ? "active" : "")">
+                    <span class="submenu-dot"></span><span>Editar usuario</span>
+                </a>
+                <a asp-controller="Usuarios" asp-action="Baja" class="submenu-item @(esModuloUsuarios && currentAction == "Baja" ? "active" : "")">
+                    <span class="submenu-dot"></span><span>Dar de baja a usuario</span>
+                </a>
+            </div>
+
+            <a asp-controller="Catalogos" asp-action="Index" class="menu-item @(esModuloCatalogos ? "active" : "")" title="Catálogos Generales">
+                <div class="menu-item-left">
+                    <svg class="menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <span class="menu-label">Catálogos Generales</span>
+                </div>
+            </a>
+
+            <!-- SECCIÓN 2: CAPITAL HUMANO -->
+            <div class="menu-category">Capital Humano</div>
+
+            <button type="button" class="menu-item @(esModuloEmpleados ? "active open" : "")" onclick="toggleSubmenu('submenu-rh', this)" title="Recursos humanos">
+                <div class="menu-item-left">
+                    <svg class="menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span class="menu-label">Recursos humanos</span>
+                </div>
+                <svg class="chevron-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+
+            <div class="submenu @(esModuloEmpleados ? "open" : "")" id="submenu-rh">
+                <button type="button" class="submenu-toggle @(esModuloEmpleados ? "active open" : "")" onclick="toggleSubmenu('submenu-empleados', this)">
+                    <span>Empleados</span>
+                    <svg class="chevron-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <div class="submenu-level-2 @(esModuloEmpleados ? "open" : "")" id="submenu-empleados">
+                    <a asp-controller="Empleados" asp-action="Crear" class="submenu-item @(esModuloEmpleados && currentAction == "Crear" ? "active" : "")">
+                        <span class="submenu-dot"></span><span>Alta de Empleado</span>
+                    </a>
+                    <a asp-controller="Empleados" asp-action="Editar" class="submenu-item @(esModuloEmpleados && currentAction == "Editar" ? "active" : "")">
+                        <span class="submenu-dot"></span><span>Editar Empleado</span>
+                    </a>
+                    <a asp-controller="Empleados" asp-action="Baja" class="submenu-item @(esModuloEmpleados && currentAction == "Baja" ? "active" : "")">
+                        <span class="submenu-dot"></span><span>Dar de baja a Empleado</span>
+                    </a>
+                    <a asp-controller="Empleados" asp-action="Consultar" class="submenu-item @(esModuloEmpleados && currentAction == "Consultar" ? "active" : "")">
+                        <span class="submenu-dot"></span><span>Consultar Empleados</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3: VENTAS -->
+            <div class="menu-category">Ventas</div>
+
+            <button type="button" class="menu-item @(esModuloClientes ? "active open" : "")" onclick="toggleSubmenu('submenu-clientes', this)" title="Clientes">
+                <div class="menu-item-left">
+                    <svg class="menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    <span class="menu-label">Clientes</span>
+                </div>
+                <svg class="chevron-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+
+            <div class="submenu @(esModuloClientes ? "open" : "")" id="submenu-clientes">
+                <a asp-controller="Clientes" asp-action="Crear" class="submenu-item @(esModuloClientes && currentAction == "Crear" ? "active" : "")">
+                    <span class="submenu-dot"></span><span>Alta de Cliente</span>
+                </a>
+                <a asp-controller="Clientes" asp-action="Editar" class="submenu-item @(esModuloClientes && currentAction == "Editar" ? "active" : "")">
+                    <span class="submenu-dot"></span><span>Editar Cliente</span>
+                </a>
+                <a asp-controller="Clientes" asp-action="Baja" class="submenu-item @(esModuloClientes && currentAction == "Baja" ? "active" : "")">
+                    <span class="submenu-dot"></span><span>Baja de Cliente</span>
+                </a>
+                <a asp-controller="Clientes" asp-action="Consultar" class="submenu-item @(esModuloClientes && currentAction == "Consultar" ? "active" : "")">
+                    <span class="submenu-dot"></span><span>Consultar Clientes</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button type="button" class="btn-toggle-sidebar" onclick="toggleSidebar()" title="Contraer/Expandir menú">☰</button>
+                <span class="page-title">@ViewData["Title"]</span>
+            </div>
+
+            <div class="topbar-right">
+                <div class="user-info">
+                    <span class="user-name">@(User.FindFirst("NombreCompleto")?.Value ?? User.Identity?.Name ?? "Usuario")</span>
+                    <span class="user-role">@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Activo")</span>
+                </div>
+                <form asp-controller="Account" asp-action="Logout" method="post" style="margin:0;">
+                    <button type="submit" class="btn-logout">Cerrar Sesión</button>
+                </form>
+            </div>
+        </header>
+
+        <main class="content-body">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script>
+            function toggleSidebar() {
+                document.getElementById('sidebar').classList.toggle('collapsed');
+            }
+            function toggleSubmenu(id, btn) {
+                const sb = document.getElementById('sidebar');
+                if (sb.classList.contains('collapsed')) {
+                    sb.classList.remove('collapsed');
+                }
+                document.getElementById(id).classList.toggle('open');
+                btn.classList.toggle('open');
+            }
+
+            // Validaciones nativas HTML5 en español para toda la aplicación
+            document.addEventListener("invalid", function (e) {
+                const campo = e.target;
+                if (campo.validity.valueMissing) {
+                    campo.setCustomValidity(campo.tagName === "SELECT"
+                        ? "Por favor, selecciona una opción de la lista."
+                        : "Por favor, completa este campo obligatorio.");
+                }
+            }, true);
+
+            document.addEventListener("input", function (e) { e.target.setCustomValidity(""); }, true);
+            document.addEventListener("change", function (e) { e.target.setCustomValidity(""); }, true);
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

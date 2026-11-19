@@ -1,0 +1,387 @@
+﻿@{
+    ViewData["Title"] = "Panel Principal";
+}
+
+<style>
+    .welcome-banner {
+        background: linear-gradient(135deg, #0B192C 0%, #1E3E62 100%);
+        color: #ffffff;
+        padding: 30px 35px;
+        border-radius: 12px;
+        border-left: 6px solid #C5A880;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 20px rgba(11, 25, 44, 0.12);
+    }
+
+        .welcome-banner h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .welcome-banner p {
+            color: #D0D7DE;
+            font-size: 14px;
+        }
+
+    .modules-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 24px;
+        align-items: start;
+    }
+
+    .module-card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 25px;
+        color: #0B192C;
+        border: 1px solid #E5E9F0;
+        border-top: 5px solid #1E3E62;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(11, 25, 44, 0.05);
+        cursor: pointer;
+    }
+
+        .module-card:hover {
+            border-top-color: #C5A880;
+            box-shadow: 0 12px 28px rgba(11, 25, 44, 0.12);
+        }
+
+    .module-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
+    .module-header-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .module-icon {
+        width: 46px;
+        height: 46px;
+        background-color: #0B192C;
+        color: #C5A880;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: background-color 0.3s ease;
+    }
+
+    .module-card:hover .module-icon {
+        background-color: #1E3E62;
+    }
+
+    .module-card h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0B192C;
+    }
+
+    .hover-indicator {
+        color: #9BA4B5;
+        font-size: 12px;
+        font-weight: 600;
+        transition: transform 0.3s ease, color 0.3s ease;
+    }
+
+    .module-card:hover .hover-indicator {
+        transform: rotate(180deg);
+        color: #C5A880;
+    }
+
+    .module-desc {
+        font-size: 13px;
+        color: #64748B;
+        line-height: 1.5;
+        margin-bottom: 0;
+        transition: margin 0.3s ease, padding 0.3s ease;
+    }
+
+    .module-card:hover .module-desc {
+        margin-bottom: 18px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #F1F5F9;
+    }
+
+    /* --- CONTENEDOR OCULTO QUE SE DESPLIEGA CON HOVER --- */
+    .sub-actions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: max-height 0.35s ease, opacity 0.25s ease;
+    }
+
+    .module-card:hover .sub-actions-list {
+        max-height: 300px;
+        opacity: 1;
+    }
+
+    /* Etiqueta de subgrupo (Nivel 2 dentro de la tarjeta, ej. Empleados) */
+    .sub-group-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #1E3E62;
+        font-weight: 700;
+        padding-left: 4px;
+        margin-top: 2px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .sub-group-label::before {
+            content: "";
+            display: inline-block;
+            width: 8px;
+            height: 2px;
+            background-color: #C5A880;
+        }
+
+    .sub-action-btn {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 11px 15px;
+        background-color: #F5F7F8;
+        color: #0B192C;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 13.5px;
+        font-weight: 600;
+        border: 1px solid #E2E8F0;
+        transition: all 0.2s ease;
+    }
+
+    .sub-action-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .sub-action-btn svg {
+        width: 18px;
+        height: 18px;
+        color: #1E3E62;
+        transition: color 0.2s ease;
+    }
+
+    .sub-action-arrow {
+        color: #9BA4B5;
+        font-weight: 700;
+        transition: transform 0.2s ease, color 0.2s ease;
+    }
+
+    .sub-action-btn:hover {
+        background-color: #1E3E62;
+        color: #ffffff;
+        border-color: #1E3E62;
+        transform: translateX(4px);
+    }
+
+        .sub-action-btn:hover svg,
+        .sub-action-btn:hover .sub-action-arrow {
+            color: #C5A880;
+        }
+
+        .sub-action-btn:hover .sub-action-arrow {
+            transform: translateX(3px);
+        }
+
+    .sub-action-btn.baja-btn:hover {
+        background-color: #0B192C;
+        border-color: #9A3B3B;
+    }
+</style>
+
+<div class="welcome-banner">
+    <h1>Bienvenido a MetalERP, @(User.FindFirst("NombreCompleto")?.Value ?? User.Identity?.Name ?? "Usuario")</h1>
+    <p>Sistema Integral de Control de Procesos Metalmecánicos • ACV Precision</p>
+</div>
+
+<div class="modules-grid">
+    <!-- TARJETA 1: ADMINISTRACION -->
+    <div class="module-card">
+        <!-- TARJETA: <div class="modules-grid"> -->
+        <div class="module-card-header">
+            <div class="module-header-left">
+                <div class="module-icon">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </div>
+                <h3>Usuarios</h3>
+            </div>
+            <span class="hover-indicator">▼</span>
+        </div>
+
+        <p class="module-desc">
+            Control de credenciales, asignación de privilegios por módulo y gestión de cuentas activas en planta.
+        </p>
+
+        <div class="sub-actions-list">
+            <a asp-controller="Usuarios" asp-action="Crear" class="sub-action-btn">
+                <div class="sub-action-left">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                    <span>Crear usuario</span>
+                </div>
+                <span class="sub-action-arrow">&rarr;</span>
+            </a>
+
+            <a asp-controller="Usuarios" asp-action="Editar" class="sub-action-btn">
+                <div class="sub-action-left">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <span>Editar usuario</span>
+                </div>
+                <span class="sub-action-arrow">&rarr;</span>
+            </a>
+
+            <a asp-controller="Usuarios" asp-action="Baja" class="sub-action-btn baja-btn">
+                <div class="sub-action-left">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6" />
+                    </svg>
+                    <span>Dar de baja a usuario</span>
+                </div>
+                <span class="sub-action-arrow">&rarr;</span>
+            </a>
+        </div>
+
+        <!-- TARJETA: CATÁLOGOS GENERALES -->
+        <div class="module-card">
+            <div class="module-card-header">
+                <div class="module-header-left">
+                    <div class="module-icon">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                    </div>
+                    <h3>Catálogos Generales</h3>
+                </div>
+                <span class="hover-indicator">▼</span>
+            </div>
+
+            <p class="module-desc">
+                Mantenimiento centralizado de áreas operativas, cargos, países, estados y municipios.
+            </p>
+
+            <div class="sub-actions-list">
+                <a asp-controller="Catalogos" asp-action="Index" asp-route-tab="areas" class="sub-action-btn">
+                    <div class="sub-action-left"><span>Áreas y Cargos</span></div>
+                    <span class="sub-action-arrow">&rarr;</span>
+                </a>
+                <a asp-controller="Catalogos" asp-action="Index" asp-route-tab="paises" class="sub-action-btn">
+                    <div class="sub-action-left"><span>Países, Estados y Municipios</span></div>
+                    <span class="sub-action-arrow">&rarr;</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- TARJETA 2: RECURSOS HUMANOS (Con submenú Empleados -> Alta de Empleado) -->
+    <div class="module-card">
+        <div class="module-card-header">
+            <div class="module-header-left">
+                <div class="module-icon">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                </div>
+                <h3>Recursos Humanos</h3>
+            </div>
+            <span class="hover-indicator">▼</span>
+        </div>
+
+        <p class="module-desc">
+            Administración de plantilla laboral, registro de personal operativo, puestos y expedientes.
+        </p>
+
+        <div class="sub-actions-list">
+            <div class="sub-group-label">Empleados</div>
+
+            <a asp-controller="Empleados" asp-action="Crear" class="sub-action-btn">
+                <div class="sub-action-left">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                    <span>Alta de Empleado</span>
+                </div>
+                <span class="sub-action-arrow">&rarr;</span>
+            </a>
+
+            <a asp-controller="Empleados" asp-action="Editar" class="sub-action-btn">
+                <div class="sub-action-left">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                    <span>Editar Empleado</span>
+                </div>
+                <span class="sub-action-arrow">&rarr;</span>
+            </a>
+
+            <a asp-controller="Empleados" asp-action="Consultar" class="sub-action-btn">
+                <div class="sub-action-left">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    <span>Consultar Empleados</span>
+                </div>
+                <span class="sub-action-arrow">&rarr;</span>
+            </a>
+
+            <a asp-controller="Empleados" asp-action="Baja" class="sub-action-btn baja-btn">
+                <div class="sub-action-left">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6" /></svg>
+                    <span>Dar de baja a Empleado</span>
+                </div>
+                <span class="sub-action-arrow">&rarr;</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- TARJETA 3: VENTAS (Clientes) -->
+    <div class="module-card">
+        <div class="module-card-header">
+            <div class="module-header-left">
+                <div class="module-icon">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                </div>
+                <h3>Ventas</h3>
+            </div>
+            <span class="hover-indicator">▼</span>
+        </div>
+
+        <p class="module-desc">
+            Gestión de cartera de clientes, datos fiscales, domicilios de entrega y contactos comerciales.
+        </p>
+
+        <div class="sub-actions-list">
+            <div class="sub-group-label">Clientes</div>
+            <a asp-controller="Clientes" asp-action="Crear" class="sub-action-btn">
+                <div class="sub-action-left"><span>Alta de Cliente</span></div>
+                <span class="sub-action-arrow">&rarr;</span>
+            </a>
+            <a asp-controller="Clientes" asp-action="Editar" class="sub-action-btn">
+                <div class="sub-action-left"><span>Editar Cliente</span></div>
+                <span class="sub-action-arrow">&rarr;</span>
+            </a>
+            <a asp-controller="Clientes" asp-action="Baja" class="sub-action-btn baja-btn">
+                <div class="sub-action-left"><span>Baja de Cliente</span></div>
+                <span class="sub-action-arrow">&rarr;</span>
+            </a>
+            <a asp-controller="Clientes" asp-action="Consultar" class="sub-action-btn">
+                <div class="sub-action-left"><span>Consultar Clientes</span></div>
+                <span class="sub-action-arrow">&rarr;</span>
+            </a>
+        </div>
+    </div>
+</div>

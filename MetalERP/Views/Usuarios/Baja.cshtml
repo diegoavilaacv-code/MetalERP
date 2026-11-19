@@ -1,0 +1,301 @@
+﻿@model IEnumerable<MetalERP.Models.Entities.Usuario>
+@{
+    ViewData["Title"] = "Dar de Baja a Usuario";
+}
+
+<style>
+    .table-erp {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        font-size: 13.5px;
+    }
+
+        .table-erp th {
+            background-color: #0B192C;
+            color: #ffffff;
+            text-align: left;
+            padding: 12px 15px;
+            font-weight: 600;
+        }
+
+            .table-erp th:first-child {
+                border-top-left-radius: 8px;
+            }
+
+            .table-erp th:last-child {
+                border-top-right-radius: 8px;
+            }
+
+        .table-erp td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #E5E9F0;
+            color: #0B192C;
+        }
+
+        .table-erp tr:hover {
+            background-color: #F8FAFC;
+        }
+
+    .badge-activo {
+        background-color: #DCFCE7;
+        color: #166534;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .btn-baja {
+        background-color: #9A3B3B;
+        color: #fff;
+        border: none;
+        padding: 7px 14px;
+        border-radius: 6px;
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+        .btn-baja:hover {
+            background-color: #7F1D1D;
+        }
+
+    .alert-error-erp {
+        background-color: #FEE2E2;
+        color: #991B1B;
+        border-left: 4px solid #DC2626;
+        padding: 12px 15px;
+        border-radius: 6px;
+        font-size: 13.5px;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    /* --- ESTILOS DEL MODAL DE CONFIRMACIÓN --- */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background-color: rgba(11, 25, 44, 0.65);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(2px);
+    }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+    .modal-box {
+        background: #ffffff;
+        width: 100%;
+        max-width: 440px;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+        border-top: 5px solid #9A3B3B;
+        text-align: center;
+        animation: modalPop 0.2s ease-out;
+    }
+
+    @@keyframes modalPop {
+        from {
+            transform: scale(0.92);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .modal-icon {
+        width: 54px;
+        height: 54px;
+        background-color: #FEE2E2;
+        color: #9A3B3B;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px auto;
+    }
+
+    .modal-box h3 {
+        color: #0B192C;
+        font-size: 20px;
+        margin-bottom: 8px;
+    }
+
+    .modal-box p {
+        color: #64748B;
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 22px;
+    }
+
+    .modal-user-highlight {
+        color: #0B192C;
+        font-weight: 700;
+        background-color: #F5F7F8;
+        padding: 2px 8px;
+        border-radius: 4px;
+        border: 1px solid #E2E8F0;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .btn-cancelar-modal {
+        background-color: #E5E9F0;
+        color: #0B192C;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 13.5px;
+    }
+
+        .btn-cancelar-modal:hover {
+            background-color: #CBD5E1;
+        }
+
+    .btn-confirmar-baja {
+        background-color: #9A3B3B;
+        color: #ffffff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 13.5px;
+    }
+
+        .btn-confirmar-baja:hover {
+            background-color: #7F1D1D;
+        }
+</style>
+
+<div class="erp-container">
+    <div class="form-card">
+        <div class="form-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
+            <div>
+                <h2>Baja de Usuarios</h2>
+                <p>Desactiva cuentas de acceso al sistema conservando el historial operativo del colaborador</p>
+            </div>
+            <input type="text" id="txtBuscarUsuario" onkeyup="filtrarTabla()" placeholder="Buscar usuario o empleado..." style="padding: 9px 14px; border: 1px solid #D0D7DE; border-radius: 6px; font-size: 13.5px; width: 260px;" />
+        </div>
+
+        @if (TempData["MensajeExito"] != null)
+        {
+            <div class="alert-success-erp">@TempData["MensajeExito"]</div>
+        }
+        @if (TempData["MensajeError"] != null)
+        {
+            <div class="alert-error-erp">@TempData["MensajeError"]</div>
+        }
+
+        <div style="overflow-x:auto;">
+            <table class="table-erp" id="tablaUsuarios">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Usuario (Username)</th>
+                        <th>Empleado Vinculado</th>
+                        <th>Estado</th>
+                        <th style="text-align:right;">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" style="text-align:center; color:#9BA4B5; padding:25px;">
+                                No hay otros usuarios activos disponibles para dar de baja.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var u in Model)
+                        {
+                            var nombreEmp = u.Empleado?.NombreCompleto ?? "Sin empleado asignado";
+                            <tr>
+                                <td>#@u.UsuarioID</td>
+                                <td style="font-weight:700;">@u.Username</td>
+                                <td>@nombreEmp</td>
+                                <td><span class="badge-activo">Activo</span></td>
+                                <td style="text-align:right;">
+                                    <button type="button" class="btn-baja"
+                                            onclick="abrirModalBaja(@u.UsuarioID, '@u.Username', '@nombreEmp')">
+                                        Dar de baja
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- VENTANA MODAL DE CONFIRMACIÓN -->
+<div class="modal-overlay" id="modalConfirmarBaja">
+    <div class="modal-box">
+        <div class="modal-icon">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+        </div>
+        <h3>¿Confirmar baja de usuario?</h3>
+        <p>
+            Estás a punto de revocar el acceso al sistema para la cuenta <span class="modal-user-highlight" id="modalUsername"></span>
+            (<span id="modalEmpleado"></span>).<br><br>
+            Esta acción bloqueará su inicio de sesión de inmediato.
+        </p>
+
+        <form id="formConfirmarBaja" asp-controller="Usuarios" asp-action="ProcesarBaja" method="post">
+            <input type="hidden" name="id" id="modalUsuarioId" />
+            <div class="modal-actions">
+                <button type="button" class="btn-cancelar-modal" onclick="cerrarModalBaja()">Cancelar</button>
+                <button type="submit" class="btn-confirmar-baja">Sí, dar de baja</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function abrirModalBaja(id, username, empleado) {
+        document.getElementById('modalUsuarioId').value = id;
+        document.getElementById('modalUsername').textContent = username;
+        document.getElementById('modalEmpleado').textContent = empleado;
+        document.getElementById('modalConfirmarBaja').classList.add('show');
+    }
+
+    function cerrarModalBaja() {
+        document.getElementById('modalConfirmarBaja').classList.remove('show');
+    }
+
+    // Cerrar el modal si el usuario hace clic fuera del cuadro blanco
+    document.getElementById('modalConfirmarBaja').addEventListener('click', function (e) {
+        if (e.target === this) cerrarModalBaja();
+    });
+
+    function filtrarTabla() {
+        const filtro = document.getElementById('txtBuscarUsuario').value.toLowerCase();
+        const filas = document.querySelectorAll('#tablaUsuarios tbody tr');
+        filas.forEach(fila => {
+            const texto = fila.textContent.toLowerCase();
+            fila.style.display = texto.includes(filtro) ? '' : 'none';
+        });
+    }
+</script>

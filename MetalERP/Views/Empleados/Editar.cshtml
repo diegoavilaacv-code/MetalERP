@@ -1,0 +1,533 @@
+﻿@model MetalERP.Models.ViewModels.EditarEmpleadoViewModel
+@{
+    ViewData["Title"] = "Editar Empleado";
+}
+
+<div class="erp-container">
+    <div class="form-card">
+        <div class="form-header">
+            <h2>Editar Expediente de Empleado</h2>
+            <p>Selecciona un colaborador activo para modificar cualquiera de sus datos registrados</p>
+        </div>
+
+        @if (TempData["MensajeExito"] != null)
+        {
+            <div class="alert-success-erp">@TempData["MensajeExito"]</div>
+        }
+
+        <div asp-validation-summary="ModelOnly" class="text-danger" style="margin-bottom:15px;"></div>
+
+        <div class="form-group" style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #E5E9F0;">
+            <label for="ddlSeleccionarEmpleado">Seleccionar Empleado</label>
+            <select id="ddlSeleccionarEmpleado" asp-for="EmpleadoID" asp-items="@(ViewBag.Empleados as SelectList)" onchange="cargarEmpleado(this.value)">
+                <option value="0">-- Elige un empleado de la lista --</option>
+            </select>
+        </div>
+
+        @if (Model.EmpleadoID > 0)
+        {
+            <form asp-controller="Empleados" asp-action="Editar" method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="EmpleadoID" />
+
+                <div class="accordion-section" style="margin-top: 0;">
+                    <button type="button" class="accordion-header open" onclick="toggleSeccionAcordeon('sec-datos-personales', this)">
+                        <div class="accordion-title">
+                            <span>1. Datos Personales, Puesto y Teléfonos</span>
+                            <span class="accordion-badge">Información principal</span>
+                        </div>
+                        <svg class="accordion-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div class="accordion-body open" id="sec-datos-personales">
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label asp-for="Nombre">Nombre(s) *</label>
+                                <input asp-for="Nombre" />
+                                <span asp-validation-for="Nombre" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="ApellidoPaterno">Apellido Paterno *</label>
+                                <input asp-for="ApellidoPaterno" />
+                                <span asp-validation-for="ApellidoPaterno" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="ApellidoMaterno">Apellido Materno</label>
+                                <input asp-for="ApellidoMaterno" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="CorreoEmpleado">Correo Electrónico</label>
+                                <input asp-for="CorreoEmpleado" type="email" />
+                            </div>
+                            <!-- ÁREA -->
+                            <div class="form-group">
+                                <label asp-for="AreaID">Área *</label>
+                                <div class="select-add-group">
+                                    <select asp-for="AreaID" id="ddlArea" asp-items="@(ViewBag.Areas as SelectList)">
+                                        <option value="">-- Selecciona un área --</option>
+                                    </select>
+                                    <button type="button" class="btn-quick-add" title="Agregar nueva Área" onclick="abrirModalCatalogo('area')">+</button>
+                                </div>
+                                <span asp-validation-for="AreaID" class="text-danger"></span>
+                            </div>
+
+                            <!-- CARGO -->
+                            <div class="form-group">
+                                <label asp-for="CargoID">Cargo / Puesto *</label>
+                                <div class="select-add-group">
+                                    <select asp-for="CargoID" id="ddlCargo" asp-items="@(ViewBag.Cargos as SelectList)">
+                                        <option value="">-- Selecciona un cargo --</option>
+                                    </select>
+                                    <button type="button" class="btn-quick-add" title="Agregar nuevo Cargo al área seleccionada" onclick="abrirModalCatalogo('cargo')">+</button>
+                                </div>
+                                <span asp-validation-for="CargoID" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="FechaContratacion">Fecha de Contratación</label>
+                                <input asp-for="FechaContratacion" type="date" />
+                            </div>
+
+                            <div class="form-group span-3" style="margin-top: 8px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                    <label style="margin:0;">Teléfonos Personales (0 o más)</label>
+                                    <button type="button" onclick="agregarTelefono()" style="background:#0B192C; color:#C5A880; border:none; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">+ Agregar teléfono</button>
+                                </div>
+                                <div id="contenedor-telefonos" style="display:flex; flex-direction:column; gap:8px;">
+                                    @for (int i = 0; i < Model.Telefonos.Count; i++)
+                                    {
+                                        <div class="fila-telefono" style="display:flex; gap:10px;">
+                                            <input name="Telefonos[@i]" value="@Model.Telefonos[i]" maxlength="20" />
+                                            <button type="button" onclick="eliminarFila(this, 'telefono')" style="background:#9A3B3B; color:#fff; border:none; border-radius:6px; padding:0 12px; cursor:pointer;">✕</button>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-section">
+                    <button type="button" class="accordion-header" onclick="toggleSeccionAcordeon('sec-domicilio', this)">
+                        <div class="accordion-title">
+                            <span>2. Domicilio Particular</span>
+                            <span class="accordion-badge">Ubicación y calle</span>
+                        </div>
+                        <svg class="accordion-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div class="accordion-body" id="sec-domicilio">
+                        <div class="grid-3">
+                            <!-- PAÍS -->
+                            <div class="form-group">
+                                <label asp-for="PaisID">País *</label>
+                                <div class="select-add-group">
+                                    <select asp-for="PaisID" id="ddlPais" asp-items="@(ViewBag.Paises as SelectList)">
+                                        <option value="">-- Selecciona un país --</option>
+                                    </select>
+                                    <button type="button" class="btn-quick-add" title="Agregar nuevo País" onclick="abrirModalCatalogo('pais')">+</button>
+                                </div>
+                                <span asp-validation-for="PaisID" class="text-danger"></span>
+                            </div>
+
+                            <!-- ESTADO -->
+                            <div class="form-group">
+                                <label asp-for="EntidadFederativa">Estado / Entidad *</label>
+                                <div class="select-add-group">
+                                    <select asp-for="EntidadFederativa" id="ddlEstado" asp-items="@(ViewBag.Estados as SelectList)">
+                                        <option value="">-- Selecciona un estado --</option>
+                                    </select>
+                                    <button type="button" class="btn-quick-add" title="Agregar nuevo Estado al país seleccionado" onclick="abrirModalCatalogo('estado')">+</button>
+                                </div>
+                                <span asp-validation-for="EntidadFederativa" class="text-danger"></span>
+                            </div>
+
+                            <!-- MUNICIPIO -->
+                            <div class="form-group">
+                                <label asp-for="Municipio">Municipio *</label>
+                                <div class="select-add-group">
+                                    <select asp-for="Municipio" id="ddlMunicipio" asp-items="@(ViewBag.Municipios as SelectList)">
+                                        <option value="">-- Selecciona un municipio --</option>
+                                    </select>
+                                    <button type="button" class="btn-quick-add" title="Agregar nuevo Municipio al estado seleccionado" onclick="abrirModalCatalogo('municipio')">+</button>
+                                </div>
+                                <span asp-validation-for="Municipio" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="ColoniaLocalidad">Colonia / Localidad</label>
+                                <input asp-for="ColoniaLocalidad" />
+                            </div>
+                            <div class="form-group span-2">
+                                <label asp-for="Calle">Calle</label>
+                                <input asp-for="Calle" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="NumeroExterior">Número Exterior</label>
+                                <input asp-for="NumeroExterior" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="NumeroInterior">Número Interior</label>
+                                <input asp-for="NumeroInterior" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="CodigoPostal">Código Postal</label>
+                                <input asp-for="CodigoPostal" maxlength="5" />
+                            </div>
+                            <div class="form-group span-3">
+                                <label asp-for="Referencia">Referencia (Máx. 20 caracteres)</label>
+                                <input asp-for="Referencia" maxlength="20" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-section">
+                    <button type="button" class="accordion-header" onclick="toggleSeccionAcordeon('sec-contactos', this)">
+                        <div class="accordion-title">
+                            <span>3. Contactos de Emergencia</span>
+                            <span class="accordion-badge">Opcional</span>
+                        </div>
+                        <svg class="accordion-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div class="accordion-body" id="sec-contactos">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin: 25px 0 15px 0;">
+                            <button type="button" onclick="agregarContacto()" style="background:#0B192C; color:#C5A880; border:none; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer;">+ Agregar contacto</button>
+                        </div>
+
+                        <div id="contenedor-contactos" style="display:flex; flex-direction:column; gap:16px;">
+                            @for (int i = 0; i < Model.Contactos.Count; i++)
+                            {
+                                <div class="tarjeta-contacto" style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:16px; position:relative;">
+                                    <button type="button" onclick="eliminarFila(this, 'contacto')" style="position:absolute; top:12px; right:12px; background:#9A3B3B; color:#fff; border:none; border-radius:5px; padding:4px 10px; font-size:12px; cursor:pointer;">Eliminar</button>
+                                    <div class="grid-2">
+                                        <div class="form-group span-2">
+                                            <label>Nombre Completo *</label>
+                                            <input name="Contactos[@i].Nombre" value="@Model.Contactos[i].Nombre" maxlength="150" required />
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Parentesco *</label>
+                                            <input name="Contactos[@i].Parentesco" value="@Model.Contactos[i].Parentesco" maxlength="50" required />
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Teléfono *</label>
+                                            <input name="Contactos[@i].Telefono" value="@Model.Contactos[i].Telefono" maxlength="50" required />
+                                        </div>
+                                        <div class="form-group span-2">
+                                            <label>Correo</label>
+                                            <input name="Contactos[@i].Correo" value="@Model.Contactos[i].Correo" type="email" maxlength="50" />
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-section">
+                    <button type="button" class="accordion-header" onclick="toggleSeccionAcordeon('sec-expediente', this)">
+                        <div class="accordion-title">
+                            <span>4. Expediente Electrónico</span>
+                            <span class="accordion-badge">PDF, Word o Imagen</span>
+                        </div>
+                        <svg class="accordion-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div class="accordion-body" id="sec-expediente">
+                        @if (Model.DocumentosActuales.Any())
+                        {
+                            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:12px 16px; margin-bottom:16px;">
+                                <strong style="font-size:12.5px; color:#0B192C; display:block; margin-bottom:8px;">Documentos actualmente cargados (sube uno nuevo solo si deseas reemplazarlo):</strong>
+                                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                                    @foreach (var doc in Model.DocumentosActuales)
+                                    {
+                                        <a href="@doc.RutaArchivo" target="_blank" style="background:#1E3E62; color:#fff; text-decoration:none; padding:5px 11px; border-radius:5px; font-size:12px;">
+                                            📎 @doc.TipoDocumento
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <div class="section-title">4. Expediente Electrónico (PDF, Word o Imagen)</div>
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label asp-for="DocSolicitudEmpleo">Solicitud de empleo</label>
+                                <input asp-for="DocSolicitudEmpleo" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="DocActaNacimiento">Acta de nacimiento</label>
+                                <input asp-for="DocActaNacimiento" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="DocINE">INE</label>
+                                <input asp-for="DocINE" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="DocCURP">CURP</label>
+                                <input asp-for="DocCURP" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="DocComprobanteEstudios">Comprobante de estudios</label>
+                                <input asp-for="DocComprobanteEstudios" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="DocComprobanteDomicilio">Comprobante de domicilio</label>
+                                <input asp-for="DocComprobanteDomicilio" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="DocConstanciaIMSS">Constancia del IMSS</label>
+                                <input asp-for="DocConstanciaIMSS" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="DocContratoConfidencialidad">Contrato de confidencialidad firmado</label>
+                                <input asp-for="DocContratoConfidencialidad" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="DocContratoVinculacion">Contrato de vinculación</label>
+                                <input asp-for="DocContratoVinculacion" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="DocReglamentoFirmado">Reglamento firmado</label>
+                                <input asp-for="DocReglamentoFirmado" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="DocFoto">Foto del empleado</label>
+                                <input asp-for="DocFoto" type="file" accept=".jpg,.jpeg,.png" />
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 30px; border-top: 1px solid #E5E9F0; padding-top: 20px;">
+                            <button type="submit" class="btn-primary-erp">Guardar Cambios del Expediente</button>
+                            <a asp-controller="Home" asp-action="Index" class="btn-secondary-erp">Cancelar</a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        }
+    </div>
+</div>
+
+<!-- MODAL REUTILIZABLE PARA ALTA RÁPIDA DE CATÁLOGOS -->
+<div id="modalCatalogo" style="display:none; position:fixed; inset:0; background:rgba(11,25,44,0.65); z-index:1000; align-items:center; justify-content:center; backdrop-filter:blur(2px);">
+    <div style="background:#fff; width:100%; max-width:420px; border-radius:12px; padding:28px; box-shadow:0 20px 40px rgba(0,0,0,0.25); border-top:5px solid #C5A880;">
+        <h3 id="modalCatTitulo" style="color:#0B192C; font-size:19px; margin-bottom:6px;">Nuevo Registro</h3>
+        <p id="modalCatSubtitulo" style="color:#64748B; font-size:13px; margin-bottom:18px;"></p>
+
+        <div id="modalCatError" style="display:none; background:#FEE2E2; color:#991B1B; padding:9px 12px; border-radius:6px; font-size:12.5px; margin-bottom:14px;"></div>
+
+        <div class="form-group" style="margin-bottom:22px;">
+            <label style="display:block; font-size:13px; font-weight:600; color:#0B192C; margin-bottom:6px;">Nombre *</label>
+            <input type="text" id="txtNuevoCatalogo" maxlength="100" placeholder="Escribe el nombre..." style="width:100%; padding:10px 12px; border:1px solid #D0D7DE; border-radius:6px; font-size:14px;" />
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" onclick="cerrarModalCatalogo()" class="btn-secondary-erp" style="margin:0;">Cancelar</button>
+            <button type="button" id="btnGuardarCatalogo" onclick="guardarCatalogoRapido()" class="btn-primary-erp">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleSeccionAcordeon(bodyId, btnHeader) {
+        const body = document.getElementById(bodyId);
+        body.classList.toggle('open');
+        btnHeader.classList.toggle('open');
+    }
+
+    // Detectar automáticamente si hubo un error de validación dentro de una sección cerrada y abrirla
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll('.accordion-section').forEach(seccion => {
+            const errores = seccion.querySelectorAll('.field-validation-error, .text-danger');
+            let tieneError = false;
+            errores.forEach(err => {
+                if (err.textContent.trim().length > 0) tieneError = true;
+            });
+
+            if (tieneError) {
+                seccion.querySelector('.accordion-header').classList.add('open');
+                seccion.querySelector('.accordion-body').classList.add('open');
+            }
+        });
+    });
+
+    function cargarEmpleado(id) {
+        window.location.href = id > 0 ? `/Empleados/Editar?id=${id}` : `/Empleados/Editar`;
+    }
+
+    async function cargarDesplegable(url, selectDestino, textoDefault) {
+        selectDestino.innerHTML = '<option value="">Cargando...</option>';
+        const res = await fetch(url);
+        const datos = await res.json();
+        selectDestino.innerHTML = `<option value="">${textoDefault}</option>`;
+        datos.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item.id; opt.textContent = item.nombre;
+            selectDestino.appendChild(opt);
+        });
+    }
+
+    document.getElementById('ddlArea')?.addEventListener('change', function () {
+        const ddlCargo = document.getElementById('ddlCargo');
+        if (!this.value) { ddlCargo.innerHTML = '<option value="">-- Elige un área --</option>'; return; }
+        cargarDesplegable(`/Empleados/ObtenerCargosPorArea?areaId=${this.value}`, ddlCargo, '-- Selecciona un cargo --');
+    });
+
+    document.getElementById('ddlPais')?.addEventListener('change', function () {
+        const ddlEstado = document.getElementById('ddlEstado');
+        const ddlMunicipio = document.getElementById('ddlMunicipio');
+        ddlMunicipio.innerHTML = '<option value="">-- Elige un estado --</option>';
+        if (!this.value) { ddlEstado.innerHTML = '<option value="">-- Elige un país --</option>'; return; }
+        cargarDesplegable(`/Empleados/ObtenerEstadosPorPais?paisId=${this.value}`, ddlEstado, '-- Selecciona un estado --');
+    });
+
+    document.getElementById('ddlEstado')?.addEventListener('change', function () {
+        const ddlMunicipio = document.getElementById('ddlMunicipio');
+        if (!this.value) { ddlMunicipio.innerHTML = '<option value="">-- Elige un estado --</option>'; return; }
+        cargarDesplegable(`/Empleados/ObtenerMunicipiosPorEstado?estadoId=${this.value}`, ddlMunicipio, '-- Selecciona un municipio --');
+    });
+
+    function agregarTelefono() {
+        const cont = document.getElementById('contenedor-telefonos');
+        const idx = cont.querySelectorAll('.fila-telefono').length;
+        const div = document.createElement('div');
+        div.className = 'fila-telefono'; div.style = 'display:flex; gap:10px;';
+        div.innerHTML = `<input name="Telefonos[${idx}]" maxlength="20" placeholder="Nuevo teléfono" /><button type="button" onclick="eliminarFila(this, 'telefono')" style="background:#9A3B3B; color:#fff; border:none; border-radius:6px; padding:0 12px; cursor:pointer;">✕</button>`;
+        cont.appendChild(div);
+    }
+
+    function agregarContacto() {
+        const cont = document.getElementById('contenedor-contactos');
+        const idx = cont.querySelectorAll('.tarjeta-contacto').length;
+        const div = document.createElement('div');
+        div.className = 'tarjeta-contacto'; div.style = 'background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:16px; position:relative;';
+        div.innerHTML = `<button type="button" onclick="eliminarFila(this, 'contacto')" style="position:absolute; top:12px; right:12px; background:#9A3B3B; color:#fff; border:none; border-radius:5px; padding:4px 10px; font-size:12px; cursor:pointer;">Eliminar</button><div class="grid-2"><div class="form-group span-2"><label>Nombre Completo *</label><input name="Contactos[${idx}].Nombre" maxlength="150" required /></div><div class="form-group"><label>Parentesco *</label><input name="Contactos[${idx}].Parentesco" maxlength="50" required /></div><div class="form-group"><label>Teléfono *</label><input name="Contactos[${idx}].Telefono" maxlength="50" required /></div><div class="form-group span-2"><label>Correo</label><input name="Contactos[${idx}].Correo" type="email" maxlength="50" /></div></div>`;
+        cont.appendChild(div);
+    }
+
+    function eliminarFila(btn, tipo) {
+        if (tipo === 'telefono') {
+            btn.closest('.fila-telefono').remove();
+            document.querySelectorAll('#contenedor-telefonos input').forEach((inp, i) => inp.name = `Telefonos[${i}]`);
+        } else {
+            btn.closest('.tarjeta-contacto').remove();
+            document.querySelectorAll('#contenedor-contactos .tarjeta-contacto').forEach((card, i) => {
+                card.querySelectorAll('input').forEach(inp => inp.name = inp.name.replace(/Contactos\[\d+\]/, `Contactos[${i}]`));
+            });
+        }
+    }
+
+    let tipoCatalogoActual = '';
+
+    function abrirModalCatalogo(tipo) {
+        tipoCatalogoActual = tipo;
+        const titulo = document.getElementById('modalCatTitulo');
+        const subtitulo = document.getElementById('modalCatSubtitulo');
+        const errorBox = document.getElementById('modalCatError');
+        const input = document.getElementById('txtNuevoCatalogo');
+
+        errorBox.style.display = 'none';
+        input.value = '';
+
+        if (tipo === 'cargo') {
+            const ddlArea = document.getElementById('ddlArea');
+            if (!ddlArea.value) { alert('Primero selecciona un Área para asignarle el nuevo Cargo.'); return; }
+            titulo.textContent = 'Registrar Nuevo Cargo';
+            subtitulo.textContent = `Se vinculará al área: ${ddlArea.options[ddlArea.selectedIndex].text}`;
+        } else if (tipo === 'estado') {
+            const ddlPais = document.getElementById('ddlPais');
+            if (!ddlPais.value) { alert('Primero selecciona un País para asignarle el nuevo Estado.'); return; }
+            titulo.textContent = 'Registrar Nuevo Estado';
+            subtitulo.textContent = `Se vinculará al país: ${ddlPais.options[ddlPais.selectedIndex].text}`;
+        } else if (tipo === 'municipio') {
+            const ddlEstado = document.getElementById('ddlEstado');
+            if (!ddlEstado.value) { alert('Primero selecciona un Estado para asignarle el nuevo Municipio.'); return; }
+            titulo.textContent = 'Registrar Nuevo Municipio';
+            subtitulo.textContent = `Se vinculará al estado: ${ddlEstado.options[ddlEstado.selectedIndex].text}`;
+        } else if (tipo === 'area') {
+            titulo.textContent = 'Registrar Nueva Área';
+            subtitulo.textContent = 'Agrega un nuevo departamento o área operativa a la empresa.';
+        } else if (tipo === 'pais') {
+            titulo.textContent = 'Registrar Nuevo País';
+            subtitulo.textContent = 'Agrega un nuevo país al catálogo geográfico.';
+        }
+
+        document.getElementById('modalCatalogo').style.display = 'flex';
+        setTimeout(() => input.focus(), 100);
+    }
+
+    function cerrarModalCatalogo() {
+        document.getElementById('modalCatalogo').style.display = 'none';
+    }
+
+    async function guardarCatalogoRapido() {
+        const nombre = document.getElementById('txtNuevoCatalogo').value.trim();
+        const errorBox = document.getElementById('modalCatError');
+        const btn = document.getElementById('btnGuardarCatalogo');
+
+        if (!nombre) {
+            errorBox.textContent = 'Por favor escribe un nombre válido.';
+            errorBox.style.display = 'block';
+            return;
+        }
+
+        let url = '';
+        let selectDestino = null;
+
+        if (tipoCatalogoActual === 'area') {
+            url = '/Empleados/CrearAreaRapido';
+            selectDestino = document.getElementById('ddlArea');
+        } else if (tipoCatalogoActual === 'cargo') {
+            url = `/Empleados/CrearCargoRapido?areaId=${document.getElementById('ddlArea').value}`;
+            selectDestino = document.getElementById('ddlCargo');
+        } else if (tipoCatalogoActual === 'pais') {
+            url = '/Empleados/CrearPaisRapido';
+            selectDestino = document.getElementById('ddlPais');
+        } else if (tipoCatalogoActual === 'estado') {
+            url = `/Empleados/CrearEstadoRapido?paisId=${document.getElementById('ddlPais').value}`;
+            selectDestino = document.getElementById('ddlEstado');
+        } else if (tipoCatalogoActual === 'municipio') {
+            url = `/Empleados/CrearMunicipioRapido?estadoId=${document.getElementById('ddlEstado').value}`;
+            selectDestino = document.getElementById('ddlMunicipio');
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Guardando...';
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(nombre)
+            });
+
+            if (!response.ok) {
+                errorBox.textContent = await response.text() || 'No se pudo guardar el registro.';
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            const nuevoItem = await response.json();
+            selectDestino.disabled = false;
+            const option = document.createElement('option');
+            option.value = nuevoItem.id;
+            option.textContent = nuevoItem.nombre;
+            selectDestino.appendChild(option);
+            selectDestino.value = nuevoItem.id;
+            selectDestino.dispatchEvent(new Event('change'));
+
+            cerrarModalCatalogo();
+        } catch (err) {
+            errorBox.textContent = 'Error de conexión con el servidor.';
+            errorBox.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Guardar';
+        }
+    }
+</script>

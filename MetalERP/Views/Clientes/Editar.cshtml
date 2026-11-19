@@ -1,0 +1,299 @@
+﻿@model MetalERP.Models.ViewModels.ClienteFormViewModel
+@{
+    ViewData["Title"] = "Editar Cliente";
+}
+
+<div class="erp-container">
+    <div class="form-card">
+        <div class="form-header">
+            <h2>Editar Cliente</h2>
+            <p>Selecciona un cliente activo para actualizar sus datos fiscales, ubicación o contactos comerciales</p>
+        </div>
+
+        @if (TempData["MensajeExito"] != null)
+        {
+            <div class="alert-success-erp">@TempData["MensajeExito"]</div>
+        }
+
+        <div asp-validation-summary="ModelOnly" class="text-danger" style="margin-bottom:15px;"></div>
+
+        <div class="form-group" style="margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid #E5E9F0;">
+            <label for="ddlSeleccionarCliente">Seleccionar Cliente Activo</label>
+            <select id="ddlSeleccionarCliente" asp-for="ClienteID" asp-items="@(ViewBag.Clientes as SelectList)" onchange="location.href = this.value > 0 ? '/Clientes/Editar?id=' + this.value : '/Clientes/Editar'">
+                <option value="0">-- Elige un cliente de la lista --</option>
+            </select>
+        </div>
+
+        @if (Model.ClienteID > 0)
+        {
+            <form asp-controller="Clientes" asp-action="Editar" method="post">
+                <input type="hidden" asp-for="ClienteID" />
+
+                <!-- SECCIÓN 1: DATOS GENERALES Y FISCALES -->
+                <div class="accordion-section" style="margin-top:0;">
+                    <button type="button" class="accordion-header open" onclick="toggleSec('sec-cli-1', this)">
+                        <div class="accordion-title">
+                            <span>1. Datos Generales y Fiscales</span>
+                            <span class="accordion-badge">Información principal</span>
+                        </div>
+                        <svg class="accordion-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div class="accordion-body open" id="sec-cli-1">
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label asp-for="Clave">Clave Cliente *</label>
+                                <div class="select-add-group">
+                                    <input asp-for="Clave" id="txtClaveCliente" maxlength="3" style="text-transform:uppercase; font-weight:700;" placeholder="Auto" required />
+                                    <button type="button" class="btn-quick-add" title="Regenerar clave sugerida según el nombre" onclick="generarClaveAutomatica()" style="font-size:13px; padding:0 10px;">🔄</button>
+                                </div>
+                                <span asp-validation-for="Clave" class="text-danger"></span>
+                            </div>
+                            <div class="form-group span-2">
+                                <label asp-for="RazonSocial_Nombre">Razón Social / Nombre *</label>
+                                <input asp-for="RazonSocial_Nombre" id="txtRazonSocial" maxlength="50" placeholder="ej. Aceros del Centro S.A." onblur="generarClaveAutomatica()" required />
+                                <span asp-validation-for="RazonSocial_Nombre" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="RFC">RFC</label>
+                                <input asp-for="RFC" maxlength="50" />
+                                <span asp-validation-for="RFC" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="Correo">Correo Electrónico</label>
+                                <input asp-for="Correo" type="email" maxlength="255" />
+                                <span asp-validation-for="Correo" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="TelefonoPrincipal">Teléfono Principal</label>
+                                <input asp-for="TelefonoPrincipal" maxlength="20" />
+                            </div>
+                            <div class="form-group span-3">
+                                <label asp-for="PaginaWeb">Página Web</label>
+                                <input asp-for="PaginaWeb" maxlength="50" />
+                            </div>
+
+                            <!-- Teléfonos adicionales -->
+                            <div class="form-group span-3" style="margin-top:8px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                    <label style="margin:0;">Teléfonos Adicionales (0 o más)</label>
+                                    <button type="button" onclick="agregarTelCli()" style="background:#0B192C; color:#C5A880; border:none; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">+ Agregar teléfono</button>
+                                </div>
+                                <div id="cont-tels-cli" style="display:flex; flex-direction:column; gap:8px;">
+                                    @for (int i = 0; i < Model.TelefonosAdicionales.Count; i++)
+                                    {
+                                        <div class="fila-tel" style="display:flex; gap:10px;">
+                                            <input name="TelefonosAdicionales[@i]" value="@Model.TelefonosAdicionales[i]" maxlength="20" />
+                                            <button type="button" onclick="eliminarTelCli(this)" style="background:#9A3B3B; color:#fff; border:none; border-radius:6px; padding:0 12px; cursor:pointer;">✕</button>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 2: DOMICILIO -->
+                <div class="accordion-section">
+                    <button type="button" class="accordion-header" onclick="toggleSec('sec-cli-2', this)">
+                        <div class="accordion-title">
+                            <span>2. Domicilio</span>
+                            <span class="accordion-badge">Ubicación</span>
+                        </div>
+                        <svg class="accordion-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div class="accordion-body" id="sec-cli-2">
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label asp-for="PaisID">País *</label>
+                                <select asp-for="PaisID" id="ddlPais" asp-items="@(ViewBag.Paises as SelectList)" required>
+                                    <option value="">-- Selecciona país --</option>
+                                </select>
+                                <span asp-validation-for="PaisID" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="EntidadFederativa">Estado *</label>
+                                <select asp-for="EntidadFederativa" id="ddlEstado" asp-items="@(ViewBag.Estados as SelectList)" required>
+                                    <option value="">-- Selecciona estado --</option>
+                                </select>
+                                <span asp-validation-for="EntidadFederativa" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="Municipio">Municipio *</label>
+                                <select asp-for="Municipio" id="ddlMunicipio" asp-items="@(ViewBag.Municipios as SelectList)" required>
+                                    <option value="">-- Selecciona municipio --</option>
+                                </select>
+                                <span asp-validation-for="Municipio" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="ColoniaLocalidad">Colonia / Localidad</label>
+                                <input asp-for="ColoniaLocalidad" maxlength="100" />
+                            </div>
+                            <div class="form-group span-2">
+                                <label asp-for="Calle">Calle</label>
+                                <input asp-for="Calle" maxlength="100" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="NumeroExterior">No. Exterior</label>
+                                <input asp-for="NumeroExterior" maxlength="20" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="NumeroInterior">No. Interior</label>
+                                <input asp-for="NumeroInterior" maxlength="20" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="CodigoPostal">Código Postal</label>
+                                <input asp-for="CodigoPostal" maxlength="50" />
+                            </div>
+                            <div class="form-group span-3">
+                                <label asp-for="Referencia">Referencia</label>
+                                <input asp-for="Referencia" maxlength="50" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- SECCIÓN 3: CONTACTOS DEL CLIENTE -->
+                <div class="accordion-section">
+                    <button type="button" class="accordion-header" onclick="toggleSec('sec-cli-3', this)">
+                        <div class="accordion-title">
+                            <span>3. Contactos del Cliente</span>
+                            <span class="accordion-badge">Opcional • 0 o más</span>
+                        </div>
+                        <svg class="accordion-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div class="accordion-body" id="sec-cli-3">
+                        <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+                            <button type="button" onclick="agregarContCli()" style="background:#0B192C; color:#C5A880; border:none; padding:6px 14px; border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer;">+ Agregar contacto</button>
+                        </div>
+                        <div id="cont-contactos-cli" style="display:flex; flex-direction:column; gap:14px;">
+                            @for (int i = 0; i < Model.Contactos.Count; i++)
+                            {
+                                <div class="card-cont" style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:15px; position:relative;">
+                                    <button type="button" onclick="eliminarContCli(this)" style="position:absolute; top:10px; right:10px; background:#9A3B3B; color:#fff; border:none; border-radius:5px; padding:4px 10px; font-size:12px; cursor:pointer;">Eliminar</button>
+                                    <div class="grid-2">
+                                        <div class="form-group"><label>Nombre *</label><input name="Contactos[@i].Nombre" value="@Model.Contactos[i].Nombre" maxlength="150" required /></div>
+                                        <div class="form-group"><label>Cargo / Puesto *</label><input name="Contactos[@i].Cargo" value="@Model.Contactos[i].Cargo" maxlength="50" required /></div>
+                                        <div class="form-group"><label>Teléfono *</label><input name="Contactos[@i].Telefono" value="@Model.Contactos[i].Telefono" maxlength="50" required /></div>
+                                        <div class="form-group"><label>Correo</label><input name="Contactos[@i].Correo" value="@Model.Contactos[i].Correo" type="email" maxlength="50" /></div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 26px; border-top: 1px solid #E5E9F0; padding-top: 20px;">
+                    <button type="submit" class="btn-primary-erp">Guardar Cambios</button>
+                    <a asp-controller="Home" asp-action="Index" class="btn-secondary-erp">Cancelar</a>
+                </div>
+            </form>
+        }
+    </div>
+</div>
+
+<script>
+    function toggleSec(id, btn) {
+        document.getElementById(id).classList.toggle('open');
+        btn.classList.toggle('open');
+    }
+
+    async function cargarUbicacion(url, destino, texto) {
+        destino.innerHTML = '<option value="">Cargando...</option>';
+        const res = await fetch(url);
+        const datos = await res.json();
+        destino.innerHTML = `<option value="">${texto}</option>`;
+        datos.forEach(x => {
+            const o = document.createElement('option');
+            o.value = x.id;
+            o.textContent = x.nombre;
+            destino.appendChild(o);
+        });
+    }
+
+    document.getElementById('ddlPais')?.addEventListener('change', function () {
+        document.getElementById('ddlMunicipio').innerHTML = '<option value="">-- Primero elige estado --</option>';
+        if (!this.value) {
+            document.getElementById('ddlEstado').innerHTML = '<option value="">-- Primero elige país --</option>';
+            return;
+        }
+        cargarUbicacion(`/Empleados/ObtenerEstadosPorPais?paisId=${this.value}`, document.getElementById('ddlEstado'), '-- Selecciona estado --');
+    });
+
+    document.getElementById('ddlEstado')?.addEventListener('change', function () {
+        if (!this.value) {
+            document.getElementById('ddlMunicipio').innerHTML = '<option value="">-- Primero elige estado --</option>';
+            return;
+        }
+        cargarUbicacion(`/Empleados/ObtenerMunicipiosPorEstado?estadoId=${this.value}`, document.getElementById('ddlMunicipio'), '-- Selecciona municipio --');
+    });
+
+    function agregarTelCli() {
+        const cont = document.getElementById('cont-tels-cli');
+        const idx = cont.querySelectorAll('.fila-tel').length;
+        const div = document.createElement('div');
+        div.className = 'fila-tel';
+        div.style = 'display:flex; gap:10px;';
+        div.innerHTML = `<input name="TelefonosAdicionales[${idx}]" maxlength="20" placeholder="Teléfono adicional" /><button type="button" onclick="eliminarTelCli(this)" style="background:#9A3B3B; color:#fff; border:none; border-radius:6px; padding:0 12px; cursor:pointer;">✕</button>`;
+        cont.appendChild(div);
+    }
+
+    function eliminarTelCli(btn) {
+        btn.parentElement.remove();
+        document.querySelectorAll('#cont-tels-cli input').forEach((inp, i) => inp.name = `TelefonosAdicionales[${i}]`);
+    }
+
+    function agregarContCli() {
+        const cont = document.getElementById('cont-contactos-cli');
+        const idx = cont.querySelectorAll('.card-cont').length;
+        const div = document.createElement('div');
+        div.className = 'card-cont';
+        div.style = 'background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:15px; position:relative;';
+        div.innerHTML = `<button type="button" onclick="eliminarContCli(this)" style="position:absolute; top:10px; right:10px; background:#9A3B3B; color:#fff; border:none; border-radius:5px; padding:4px 10px; font-size:12px; cursor:pointer;">Eliminar</button><div class="grid-2"><div class="form-group"><label>Nombre *</label><input name="Contactos[${idx}].Nombre" maxlength="150" required /></div><div class="form-group"><label>Cargo / Puesto *</label><input name="Contactos[${idx}].Cargo" maxlength="50" required /></div><div class="form-group"><label>Teléfono *</label><input name="Contactos[${idx}].Telefono" maxlength="50" required /></div><div class="form-group"><label>Correo</label><input name="Contactos[${idx}].Correo" type="email" maxlength="50" /></div></div>`;
+        cont.appendChild(div);
+    }
+
+    function eliminarContCli(btn) {
+        btn.parentElement.remove();
+        document.querySelectorAll('#cont-contactos-cli .card-cont').forEach((card, i) => {
+            card.querySelectorAll('input').forEach(inp => inp.name = inp.name.replace(/Contactos\[\d+\]/, `Contactos[${i}]`));
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll('.accordion-section').forEach(sec => {
+            const errs = sec.querySelectorAll('.field-validation-error, .text-danger');
+            if ([...errs].some(e => e.textContent.trim().length > 0)) {
+                sec.querySelector('.accordion-header').classList.add('open');
+                sec.querySelector('.accordion-body').classList.add('open');
+            }
+        });
+    });
+
+    async function generarClaveAutomatica() {
+        const inputNombre = document.getElementById('txtRazonSocial');
+        const inputClave = document.getElementById('txtClaveCliente');
+        const clienteIdInput = document.querySelector('input[name="ClienteID"]');
+        const clienteId = clienteIdInput ? clienteIdInput.value : 0;
+
+        const nombre = inputNombre.value.trim();
+        if (!nombre) return;
+
+        try {
+            const res = await fetch(`/Clientes/SugerirClave?nombre=${encodeURIComponent(nombre)}&clienteId=${clienteId}`);
+            const data = await res.json();
+            if (data.clave) {
+                inputClave.value = data.clave;
+            }
+        } catch (e) {
+            console.error("No se pudo sugerir la clave.");
+        }
+    }
+</script>

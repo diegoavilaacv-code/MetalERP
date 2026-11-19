@@ -1,0 +1,360 @@
+﻿@model IEnumerable<MetalERP.Models.ViewModels.ConsultaClienteViewModel>
+@{
+    ViewData["Title"] = "Consultar Clientes";
+}
+
+<style>
+    :root {
+        --metal-navy: #0F2537;
+        --metal-royal: #1D4ED8;
+        --metal-gold: #D4AF37;
+        --metal-gray-bg: #F4F6F9;
+    }
+
+    body {
+        background-color: var(--metal-gray-bg);
+    }
+
+    .card-metalerp {
+        border: none;
+        border-top: 4px solid var(--metal-gold);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(15, 37, 55, 0.08);
+    }
+
+    .header-metalerp {
+        background-color: var(--metal-navy);
+        color: #ffffff;
+        padding: 1.25rem 1.5rem;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .btn-metal-primary {
+        background-color: var(--metal-royal);
+        border-color: var(--metal-royal);
+        color: #fff;
+        font-weight: 500;
+    }
+
+        .btn-metal-primary:hover {
+            background-color: #153EAB;
+            color: #fff;
+        }
+
+    .btn-metal-gold {
+        background-color: var(--metal-gold);
+        border-color: var(--metal-gold);
+        color: var(--metal-navy);
+        font-weight: 600;
+    }
+
+        .btn-metal-gold:hover {
+            background-color: #BFA030;
+            color: var(--metal-navy);
+        }
+
+    .table-metalerp thead {
+        background-color: var(--metal-navy);
+        color: #ffffff;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-clave {
+        background-color: #E2E8F0;
+        color: var(--metal-navy);
+        font-family: monospace;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .badge-activo {
+        background-color: #DCFCE7;
+        color: #166534;
+        border: 1px solid #86EFAC;
+    }
+
+    .badge-inactivo {
+        background-color: #FEE2E2;
+        color: #991B1B;
+        border: 1px solid #FCA5A5;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <!-- Encabezado y Botón Nuevo -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0" style="color: var(--metal-navy);">
+                <i class="bi bi-building me-2" style="color: var(--metal-gold);"></i>Directorio de Clientes
+            </h2>
+            <p class="text-muted mb-0">Consulta general, datos fiscales y contactos de cartera.</p>
+        </div>
+        <a asp-action="Crear" class="btn btn-metal-gold px-4 py-2 shadow-sm">
+            <i class="bi bi-plus-circle me-2"></i>Nuevo Cliente
+        </a>
+    </div>
+
+    <!-- Tarjeta Principal -->
+    <div class="card card-metalerp">
+        <!-- Barra de Filtros -->
+        <div class="card-body bg-white border-bottom py-3">
+            <form method="get" asp-action="Index" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label fw-semibold text-secondary small">BUSCAR CLIENTE</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                        <input type="text" name="busqueda" value="@ViewBag.BusquedaActual"
+                               class="form-control" placeholder="Clave, razón social, nombre o RFC..." />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold text-secondary small">ESTATUS</label>
+                    <select name="estatus" class="form-select">
+                        <option value="activos" selected="@(ViewBag.EstatusActual == "activos")">Solo Activos</option>
+                        <option value="inactivos" selected="@(ViewBag.EstatusActual == "inactivos")">Solo Inactivos</option>
+                        <option value="todos" selected="@(ViewBag.EstatusActual == "todos")">Todos los registros</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-metal-primary px-4">
+                        <i class="bi bi-funnel me-1"></i>Filtrar
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabla de Resultados -->
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 table-metalerp">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Clave</th>
+                        <th>Razón Social / Nombre</th>
+                        <th>RFC</th>
+                        <th>Contacto Principal</th>
+                        <th>Ubicación</th>
+                        <th class="text-center">Contactos</th>
+                        <th class="text-center">Estatus</th>
+                        <th class="text-end pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white">
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                No se encontraron clientes con los criterios seleccionados.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="badge badge-clave px-2 py-1">@item.Clave</span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark">@item.RazonSocial_Nombre</div>
+                                    <small class="text-muted">Registro: @item.FechaRegistro.ToString("dd/MM/yyyy")</small>
+                                </td>
+                                <td class="fw-semibold" style="color: var(--metal-navy);">@item.RFC</td>
+                                <td>
+                                    <div class="small"><i class="bi bi-telephone me-1 text-primary"></i>@item.Telefono</div>
+                                    <div class="small text-muted"><i class="bi bi-envelope me-1"></i>@item.Correo</div>
+                                </td>
+                                <td>
+                                    <span class="text-secondary small">
+                                        <i class="bi bi-geo-alt me-1 text-danger"></i>@item.UbicacionResumen
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark border">
+                                        <i class="bi bi-people me-1"></i>@item.TotalContactos
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    @if (item.Activo)
+                                    {
+                                        <span class="badge rounded-pill badge-activo px-3 py-1">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill badge-inactivo px-3 py-1">Inactivo</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group shadow-sm" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-dark"
+                                                title="Ver Ficha Completa" onclick="verDetalleCliente(@item.ClienteID)">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        @if (item.Activo)
+                                        {
+                                            <a asp-action="Editar" asp-route-id="@item.ClienteID"
+                                               class="btn btn-sm btn-outline-primary" title="Editar Cliente">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer bg-white text-muted small py-3 px-4 d-flex justify-content-between">
+            <span>Mostrando <strong>@Model.Count()</strong> clientes.</span>
+            <span>MetalERP &bull; Módulo Comercial</span>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ficha Completa del Cliente -->
+<div class="modal fade" id="modalDetalleCliente" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header header-metalerp">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-person-vcard me-2" style="color: var(--metal-gold);"></i>Expediente del Cliente
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body p-4" id="contenidoModalCliente">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted">Cargando información...</p>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <a id="btnEditarDesdeModal" href="#" class="btn btn-metal-primary">
+                    <i class="bi bi-pencil me-1"></i>Editar Cliente
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function verDetalleCliente(id) {
+            const modalElement = document.getElementById('modalDetalleCliente');
+            const modal = new bootstrap.Modal(modalElement);
+            const contenedor = document.getElementById('contenidoModalCliente');
+            const btnEditar = document.getElementById('btnEditarDesdeModal');
+
+            btnEditar.href = `/Clientes/Editar/${id}`;
+            contenedor.innerHTML = `
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-2 text-muted">Consultando expediente...</p>
+                        </div>`;
+
+            modal.show();
+
+            fetch(`/Clientes/ObtenerDetalle/${id}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Error al obtener datos');
+                    return response.json();
+                })
+                .then(data => {
+                    btnEditar.style.display = data.activo ? 'inline-block' : 'none';
+
+                    let htmlDireccion = '<p class="text-muted mb-0">Sin dirección activa registrada.</p>';
+                    if (data.direccion) {
+                        htmlDireccion = `
+                                    <p class="mb-1 fw-semibold">${data.direccion.calleNumero}, Col. ${data.direccion.coloniaLocalidad || 'N/A'}, C.P. ${data.direccion.codigoPostal || 'N/A'}</p>
+                                    ${data.direccion.referencia ? `<small class="text-muted">Ref: ${data.direccion.referencia}</small>` : ''}
+                                `;
+                    }
+
+                    let htmlTels = '';
+                    if (data.telefonosAdicionales && data.telefonosAdicionales.length > 0) {
+                        htmlTels = `<div class="mt-1"><small class="text-muted fw-bold">Teléfonos adicionales:</small> <span class="small">${data.telefonosAdicionales.join(' | ')}</span></div>`;
+                    }
+
+                    let htmlContactos = '<p class="text-muted small mb-0">No hay contactos registrados para este cliente.</p>';
+                    if (data.contactos && data.contactos.length > 0) {
+                        const filas = data.contactos.map(c => `
+                                    <tr>
+                                        <td class="fw-semibold">${c.nombre}</td>
+                                        <td>${c.cargo}</td>
+                                        <td>${c.telefono}</td>
+                                        <td>${c.correo || '-'}</td>
+                                    </tr>
+                                `).join('');
+                        htmlContactos = `
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered mb-0 small">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Nombre</th>
+                                                    <th>Cargo</th>
+                                                    <th>Teléfono</th>
+                                                    <th>Correo</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>${filas}</tbody>
+                                        </table>
+                                    </div>`;
+                    }
+
+                    contenedor.innerHTML = `
+                                <div class="row g-3">
+                                    <div class="col-md-8">
+                                        <span class="badge bg-dark mb-1">Clave: ${data.clave}</span>
+                                        <h5 class="fw-bold text-dark mb-0">${data.razonSocial_Nombre}</h5>
+                                        <small class="text-muted">Fecha de alta: ${data.fechaRegistro}</small>
+                                    </div>
+                                    <div class="col-md-4 text-md-end">
+                                        <small class="text-muted text-uppercase fw-bold d-block">RFC</small>
+                                        <span class="fs-5 fw-bold text-primary">${data.rfc}</span>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <small class="text-muted fw-bold d-block">Teléfono Principal</small>
+                                        <span>${data.telefonoPrincipal}</span>
+                                        ${htmlTels}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted fw-bold d-block">Correo Electrónico</small>
+                                        <span>${data.correo}</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted fw-bold d-block">Página Web</small>
+                                        <span>${data.paginaWeb ? `<a href="${data.paginaWeb}" target="_blank">${data.paginaWeb}</a>` : 'No registrada'}</span>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <h6 class="fw-bold text-uppercase small text-secondary mb-2">
+                                            <i class="bi bi-geo-alt-fill text-danger me-1"></i>Domicilio Registrado
+                                        </h6>
+                                        ${htmlDireccion}
+                                    </div>
+
+                                    <div class="col-12">
+                                        <h6 class="fw-bold text-uppercase small text-secondary mb-2">
+                                            <i class="bi bi-people-fill text-primary me-1"></i>Contactos del Cliente
+                                        </h6>
+                                        ${htmlContactos}
+                                    </div>
+                                </div>`;
+                })
+                .catch(error => {
+                    contenedor.innerHTML = `
+                                <div class="alert alert-danger mb-0">
+                                    No se pudo cargar el expediente del cliente. Intente nuevamente.
+                                </div>`;
+                });
+        }
+    </script>
+}

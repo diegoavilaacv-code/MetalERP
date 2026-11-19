@@ -1,0 +1,229 @@
+﻿@model MetalERP.Models.ViewModels.LoginViewModel
+@{
+    Layout = null; // Evita que cargue el menú o navbar principal de la app
+    ViewData["Title"] = "MetalERP - Iniciar Sesión";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+
+            body {
+                background-color: #F5F7F8;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                color: #0B192C;
+            }
+
+            .login-card {
+                background: #ffffff;
+                padding: 40px;
+                width: 100%;
+                max-width: 420px;
+                border-radius: 12px;
+                box-shadow: 0 10px 25px rgba(11, 25, 44, 0.1);
+                border-top: 5px solid #C5A880;
+            }
+
+            .login-header {
+                text-align: center;
+                margin-bottom: 30px;
+            }
+
+            .login-header h1 {
+                color: #0B192C;
+                font-size: 26px;
+                font-weight: 700;
+                margin-bottom: 8px;
+            }
+
+            .login-header p {
+                color: #9BA4B5;
+                font-size: 14px;
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+
+            .form-group label {
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                color: #0B192C;
+                margin-bottom: 8px;
+            }
+
+            .form-group input {
+                width: 100%;
+                padding: 12px 15px;
+                border: 1px solid #D0D7DE;
+                border-radius: 6px;
+                font-size: 14px;
+                transition: all 0.3s ease;
+                outline: none;
+                background-color: #FAFAFB;
+            }
+
+            .form-group input:focus {
+                border-color: #1E3E62;
+                background-color: #ffffff;
+                box-shadow: 0 0 0 3px rgba(30, 62, 98, 0.1);
+            }
+
+            .password-wrapper {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+
+            .password-wrapper input {
+                padding-right: 42px;
+            }
+
+            .toggle-password {
+                position: absolute;
+                right: 12px;
+                background: none;
+                border: none;
+                cursor: pointer;
+                color: #9BA4B5;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 4px;
+                transition: color 0.2s ease;
+            }
+
+            .toggle-password:hover {
+                color: #1E3E62;
+            }
+
+            .toggle-password svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            .btn-submit {
+                width: 100%;
+                padding: 12px;
+                background-color: #1E3E62;
+                color: #ffffff;
+                border: none;
+                border-radius: 6px;
+                font-size: 15px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+                margin-top: 10px;
+            }
+
+            .btn-submit:hover {
+                background-color: #0B192C;
+            }
+
+            .login-footer {
+                text-align: center;
+                margin-top: 25px;
+                font-size: 12px;
+                color: #9BA4B5;
+            }
+
+            .alert-error {
+                background-color: #FDEED9;
+                color: #9A3B3B;
+                padding: 10px;
+                border-radius: 6px;
+                font-size: 13px;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+
+            .text-danger {
+                color: #9A3B3B;
+                font-size: 12px;
+                margin-top: 4px;
+                display: block;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="login-header">
+            <h1>MetalERP</h1>
+            <p>Control de Procesos Metalmecánicos</p>
+        </div>
+
+        <!-- Muestra el error solo si el controlador devuelve un mensaje -->
+        @if (ViewBag.Error != null)
+        {
+            <div id="alertaError" class="alert-error">
+                @ViewBag.Error
+            </div>
+        }
+
+        <!-- Envío seguro por POST con AntiForgeryToken automático -->
+        <form asp-controller="Account" asp-action="Login" method="post">
+            <div class="form-group">
+                <label asp-for="Usuario">Usuario</label>
+                <input asp-for="Usuario" type="text" required placeholder="User" autocomplete="username">
+                <span asp-validation-for="Usuario" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Password">Contraseña</label>
+                <div class="password-wrapper">
+                    <input asp-for="Password" type="password" id="password" required placeholder="••••••••" autocomplete="current-password">
+                    <button type="button" class="toggle-password" onclick="alternarPassword()" aria-label="Mostrar u ocultar contraseña" title="Mostrar/Ocultar contraseña">
+                        <svg id="iconoOjoAbierto" xmlns="http://w3.org" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <svg id="iconoOjoCerrado" style="display: none;" xmlns="http://w3.org" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                    </button>
+                </div>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn-submit">Ingresar al Sistema</button>
+        </form>
+
+        <div class="login-footer">
+            &copy; @DateTime.Now.Year MetalERP. Todos los derechos reservados.
+        </div>
+    </div>
+
+    <script>
+            function alternarPassword() {
+                const inputPassword = document.getElementById('password');
+                const ojoAbierto = document.getElementById('iconoOjoAbierto');
+                const ojoCerrado = document.getElementById('iconoOjoCerrado');
+
+                if (inputPassword.type === 'password') {
+                    inputPassword.type = 'text';
+                    ojoAbierto.style.display = 'none';
+                    ojoCerrado.style.display = 'block';
+                } else {
+                    inputPassword.type = 'password';
+                    ojoAbierto.style.display = 'block';
+                    ojoCerrado.style.display = 'none';
+                }
+            }
+    </script>
+</body>
+</html>
